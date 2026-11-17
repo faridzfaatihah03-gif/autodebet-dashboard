@@ -67,32 +67,21 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Inisialisasi Data Tracking (Sementara menggunakan Session State, siap di-link ke Google Sheets)
-if 'data_tracking' not in st.session_state:
-    st.session_state.data_tracking = pd.DataFrame([
-        {
-            "ID": "REG-001",
-            "Customer": "HENRI",
-            "NoRek": "1600801003449078",
-            "Bank": "BRI",
-            "Sales": "RESKYANTO PUNDA",
-            "Alasan Reject": "Phone number is not correct",
-            "Keterangan": "Terjadi perbedaan antara no telp customer di AOL Autodebet dan BRIMO",
-            "Solusi": "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon sesuai dengan yang terdaftar di Bank BRI/BRIMO.",
-            "Status": "Pending"
-        },
-        {
-            "ID": "REG-002",
-            "Customer": "ASRIYADI",
-            "NoRek": "1600801003448594",
-            "Bank": "BRI",
-            "Sales": "NURUL AZIZAH",
-            "Alasan Reject": "Phone number not found",
-            "Keterangan": "Pada saat pembukaan rekening awal, customer belum mencantumkan nomor ke BRI",
-            "Solusi": "Arahkan Customer untuk Registrasi BRIMO.",
-            "Status": "Pending"
-        }
-    ])
+# Koneksi ke Google Sheets (Membaca dari Sheet 'Tracking')
+try:
+    conn = st.connection("gsheets", type="GsheetsConnection")
+    # Membaca data tracking secara live dari Google Sheets
+    df_tracking = conn.read(worksheet="Tracking", ttl=0)
+    # Bersihkan baris kosong jika ada
+    df_tracking = df_tracking.dropna(subset=["Customer"])
+except Exception as e:
+    # Fallback jika belum tersetting secrets-nya di cloud
+    if 'data_tracking' not in st.session_state:
+        st.session_state.data_tracking = pd.DataFrame([
+            {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
+            {"ID": "REG-002", "Customer": "ASRIYADI", "NoRek": "1600801003448594", "Bank": "BRI", "Sales": "NURUL AZIZAH", "Alasan Reject": "Phone number not found", "Keterangan": "Belum ada nomor", "Solusi": "Registrasi BRIMO", "Status": "Pending"}
+        ])
+    df_tracking = st.session_state.data_tracking
 
 # Sidebar Navigasi Korporat
 st.sidebar.title("AutoMonitor ACC")
@@ -121,21 +110,23 @@ def main():
         st.title("🚗 AutoMonitor - ACC Cabang Makassar")
         st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan secara *real-time*.")
         
+        total_reject = len(df_tracking[df_tracking['Status'].astype(str).str.lower() == 'pending'])
+        
         # Metrik Utama dengan Bingkai
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.markdown("""
+            st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Nasabah Cabang</span>
-                    <h2 style="color: #3b82f6; margin: 5px 0;">1,420</h2>
-                    <small style="color: #10b981;">● Aktif Periode Ini</small>
+                    <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking</span>
+                    <h2 style="color: #3b82f6; margin: 5px 0;">{len(df_tracking)}</h2>
+                    <small style="color: #10b981;">● Live Database</small>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Total Reject Aktif</span>
-                    <h2 style="color: #ef4444; margin: 5px 0;">{len(st.session_state.data_tracking)}</h2>
+                    <h2 style="color: #ef4444; margin: 5px 0;">{total_reject}</h2>
                     <small style="color: #f59e0b;">● Perlu Tindak Lanjut</small>
                 </div>
             """, unsafe_allow_html=True)
@@ -152,7 +143,7 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● Google Sheets Connected</small>
+                    <small style="color: #10b981;">● GSheets Active</small>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -208,8 +199,8 @@ def main():
             """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.subheader("📋 Master Data Nasabah & Status Tracking (Live Sync)")
-        st.dataframe(st.session_state.data_tracking, use_container_width=True, hide_index=True)
+        st.subheader("📋 Master Data Nasabah & Status Tracking (Live from Google Sheets)")
+        st.dataframe(df_tracking, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
     # MENU 2: SALES TRACKING REJECT (INTERAKTIF)
@@ -227,11 +218,11 @@ def main():
 
         st.markdown("---")
 
-        df_view = st.session_state.data_tracking.copy()
+        df_view = df_tracking.copy()
         if pilih_sales != "SEMUA SALES":
             df_view = df_view[df_view["Sales"] == pilih_sales]
         if search_box:
-            df_view = df_view[df_view["Customer"].str.contains(search_box, case=False, na=False)]
+            df_view = df_view[df_view["Customer"].astype(str).str.contains(search_box, case=False, na=False)]
 
         # Tombol Tambah Data Reject Baru
         with st.expander("➕ Input Customer Reject Baru"):
@@ -246,22 +237,27 @@ def main():
                     new_reason = st.text_input("Alasan Reject")
                     new_solusi = st.text_area("Solusi / Corrective Action")
                 
-                submit_btn = st.form_submit_button("Simpan Data Reject Baru")
+                submit_btn = st.form_submit_button("Simpan Data ke Google Sheets")
                 if submit_btn and new_cust:
-                    new_row = pd.DataFrame([{
-                        "ID": f"REG-00{len(st.session_state.data_tracking)+1}",
+                    new_row = {
+                        "ID": f"REG-00{len(df_tracking)+1}",
                         "Customer": new_cust.upper(),
-                        "NoRek": new_norek,
+                        "NoRek": str(new_norek),
                         "Bank": new_bank,
                         "Sales": new_sales,
                         "Alasan Reject": new_reason,
-                        "Keterangan": "Input manual lapangan oleh Sales Officer",
+                        "Keterangan": "Input lapangan oleh Sales Officer",
                         "Solusi": new_solusi,
                         "Status": "Pending"
-                    }])
-                    st.session_state.data_tracking = pd.concat([st.session_state.data_tracking, new_row], ignore_index=True)
-                    st.success(f"Data customer **{new_cust.upper()}** berhasil ditambahkan ke database!")
-                    st.rerun()
+                    }
+                    try:
+                        # Menambahkan baris baru langsung ke Google Sheets
+                        updated_df = pd.concat([df_tracking, pd.DataFrame([new_row])], ignore_index=True)
+                        conn.update(worksheet="Tracking", data=updated_df)
+                        st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan ke Google Sheets!")
+                        st.rerun()
+                    except Exception as ex:
+                        st.error(f"Gagal menyimpan ke Google Sheets: {ex}")
 
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
         
@@ -285,9 +281,13 @@ def main():
                     col_act1, col_act2 = st.columns(2)
                     with col_act1:
                         if st.button(f"✅ Selesaikan Status ({row['Customer']})", key=f"btn_{idx}"):
-                            st.session_state.data_tracking.loc[idx, 'Status'] = 'Selesai'
-                            st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
-                            st.rerun()
+                            try:
+                                df_tracking.loc[idx, 'Status'] = 'Selesai'
+                                conn.update(worksheet="Tracking", data=df_tracking)
+                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai di Google Sheets!")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"Gagal memperbarui status: {ex}")
                     with col_act2:
                         wa_text = f"Halo Kak {row['Sales']}, mohon bantuannya follow up reject customer *{row['Customer']}* ({row['Bank']}). Alasan: {row['Alasan Reject']}. Solusi: {row['Solusi']}"
                         st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Salin / Kirim WA</button></a>', unsafe_allow_html=True)
@@ -304,7 +304,7 @@ def main():
         
         data_guide = [
             {"No": 1, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok dengan KTP.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dengan KTP."},
-            {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP pada sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui sistem atau arahkan nasabah walk-in ke bank untuk updation no telp."},
+            {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP pada sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui menu sistem atau arahkan nasabah walk-in ke bank untuk updation no telp."},
             {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi.", "Tindakan Korektid": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
             {"No": 4, "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Jelas", "Keterangan": "Lampiran bukti kepemilikan ATM/buku tabungan kurang jelas.", "Tindakan Korektif": "Pastikan dokumen format PDF bersih, terbaca jelas, dan sah."}
         ]
@@ -318,7 +318,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.5 Google Sheets Connected Edition")
+        st.write("Versi Web: v2.6 Full Google Sheets Live Sync")
         st.success("Database Terhubung: DB_AutoMonitor_Makassar")
 
 if __name__ == '__main__':
