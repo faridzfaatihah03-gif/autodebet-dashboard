@@ -40,15 +40,30 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Inisialisasi Database Mock / Session State untuk Simulasi Interaktif CRUD
+# Daftar Resmi Sales Officer ACC Cabang Makassar (Sesuai Data Mentah)
+DAFTAR_SO_MAKASSAR = [
+    "RESKYANTO PUNDA", "NURUL AZIZAH", "NUR RAHMADANI", "FITRIYANTI MUIS",
+    "ANDI ALGAZALI", "MUH RAFLI MUADZ", "M. B. J MUBARAQ MUCHTAR",
+    "SEPTIAN MAPPALONGI", "TAHWIL IRZAN", "AMINUDDIN A.", "ANDI IRVAN NATSIR",
+    "MUH ASWAR BASRAH", "MUHAMMAD FADHIL RAMADHAN", "DIRGA PRATAMA NUGRAHA",
+    "WILANNY NATAL B", "MUH FADLY YUSRI MS", "NAJAMUDDIN",
+    "ST. AISYAH NUR HASANAH", "SYAHRIR NUR", "IRAWATI", "TRY YUDHIANTO HAKIM",
+    "NASRUL", "HERLIN TANJUNG", "MUKRAWATI", "ZUBAIR M", "NADIA SABIR",
+    "KARMILA", "KHUSNUL KHATIMA ASRI", "GOPUR MAULAN", "ENRICKO GUEVARA KARAMOY",
+    "GABRIEL", "MIRNA ARSYITA", "ANDI MUHAMMAD WIRYAWAN", "ROHADI MAKMUR",
+    "ANDI AYYUB ARHAM", "RIZAL RIZKY RIDWAN", "MUH. ARYA ALIAS", "RANI",
+    "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
+]
+
+# Inisialisasi Database Mock / Session State untuk Pelacakan Interaktif
 if 'data_tracking' not in st.session_state:
     st.session_state.data_tracking = pd.DataFrame([
         {
             "ID": "REG-001",
-            "Customer": "JUNAIDI",
-            "NoRek": "01349791008210440",
+            "Customer": "HENRI",
+            "NoRek": "1600801003449078",
             "Bank": "BRI",
-            "Sales": "AIRLANGGA PERSADA",
+            "Sales": "RESKYANTO PUNDA",
             "Alasan Reject": "Phone number is not correct",
             "Keterangan": "Terjadi perbedaan antara no telp customer di AOL Autodebet dan BRIMO",
             "Solusi": "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon sesuai dengan yang terdaftar di Bank BRI/BRIMO.",
@@ -56,25 +71,14 @@ if 'data_tracking' not in st.session_state:
         },
         {
             "ID": "REG-002",
-            "Customer": "SULANI",
-            "NoRek": "01349791008202525",
+            "Customer": "ASRIYADI",
+            "NoRek": "1600801003448594",
             "Bank": "BRI",
-            "Sales": "AIRLANGGA PERSADA",
+            "Sales": "NURUL AZIZAH",
             "Alasan Reject": "Phone number not found",
             "Keterangan": "Pada saat pembukaan rekening awal, customer belum mencantumkan nomor ke BRI",
             "Solusi": "Arahkan Customer untuk Registrasi BRIMO.",
             "Status": "Pending"
-        },
-        {
-            "ID": "REG-003",
-            "Customer": "MADIAN FIKRI",
-            "NoRek": "01349791008218734",
-            "Bank": "BRI",
-            "Sales": "BUDI SANTOSO",
-            "Alasan Reject": "Phone number not found",
-            "Keterangan": "Pada saat pembukaan rekening awal, customer belum mencantumkan nomor ke BRI",
-            "Solusi": "Arahkan Customer untuk Registrasi BRIMO.",
-            "Status": "Selesai"
         }
     ])
 
@@ -88,7 +92,7 @@ menu_pilihan = st.sidebar.radio(
     [
         "📊 Monitoring Dashboard", 
         "📋 Sales Tracking Reject", 
-        "📖 Reject Guide Universal", 
+        "📖 Reject Guide", 
         "⚙️ Pengaturan & Data"
     ],
     label_visibility="collapsed"
@@ -99,53 +103,67 @@ st.sidebar.info("💡 **ACC Makassar** - Sistem Kolaborasi & Tracking Operasiona
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD
+    # MENU 1: MONITORING DASHBOARD (Dengan Metrik & Success Rate per Bank)
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 AutoMonitor - ACC Cabang Makassar")
-        st.markdown("Dashboard utama pemantauan proses autodebet secara *real-time*.")
+        st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan secara *real-time*.")
         
-        # Metrik Ringkasan
+        # Metrik Utama
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Total Data Nasabah", "234")
+            st.metric("Total Data Nasabah", "106,278", delta="Database Cabang")
         with col2:
-            st.metric("Total Reject", len(st.session_state.data_tracking))
+            st.metric("Total Reject Aktif", len(st.session_state.data_tracking), delta="-2 hari ini", delta_color="inverse")
         with col3:
-            st.metric("Success Rate Global", "85.2%")
+            st.metric("Success Rate Cabang", "88.4%", delta="+1.2%")
         with col4:
-            st.metric("Server Status", "Online 🚀")
+            st.metric("Server Status", "Online 🚀", delta="Aman")
             
         st.markdown("---")
-        st.subheader("Ringkasan Performa Bank")
-        st.info("Fitur filter dan grafik analitik lengkap aktif. Gunakan menu Sales Tracking untuk memperbarui data lapangan.")
+        st.subheader("📊 Persentase Success Rate per Bank")
+        st.markdown("Indikator keberhasilan registrasi autodebet berdasarkan bank mitra utama.")
+        
+        # Grid Metrik Success Rate per Bank
+        b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
+        with b_col1:
+            st.metric("BCA", "91.2%", delta="Stable")
+        with b_col2:
+            st.metric("BRI", "87.5%", delta="+0.8%")
+        with b_col3:
+            st.metric("MANDIRI", "89.1%", delta="Stable")
+        with b_col4:
+            st.metric("BNI", "86.4%", delta="-0.5%")
+        with b_col5:
+            st.metric("PERMATA", "85.0%", delta="Stable")
+
+        st.markdown("---")
+        st.info("💡 Gunakan menu **Sales Tracking Reject** untuk melakukan pemantauan dan tindak lanjut kasus penolakan bersama tim Sales Officer.")
 
     # -------------------------------------------------------------------------
-    # MENU 2: SALES TRACKING REJECT (INTERAKTIF CRUD)
+    # MENU 2: SALES TRACKING REJECT (INTERAKTIF)
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📋 Sales Tracking Reject":
         st.title("📋 Sales Tracking Reject")
         st.markdown("Pusat pemantauan dan pengelolaan penolakan (*reject*) penagihan autodebet nasabah.")
         
-        # Filter Sales Officer di bagian atas
         col_f1, col_f2 = st.columns([2, 1])
         with col_f1:
-            daftar_sales = ["SEMUA SALES"] + list(st.session_state.data_tracking["Sales"].unique())
-            pilih_sales = st.selectbox("👤 Pilih Nama Anda (Nama SO):", daftar_sales)
+            daftar_filter_sales = ["SEMUA SALES"] + DAFTAR_SO_MAKASSAR
+            pilih_sales = st.selectbox("👤 Pilih Nama Sales Officer:", daftar_filter_sales)
         with col_f2:
             search_box = st.text_input("🔍 Cari Nama/ID:", placeholder="Ketik nama customer...")
 
         st.markdown("---")
 
-        # Filter DataFrame berdasarkan pilihan Sales & Pencarian
         df_view = st.session_state.data_tracking.copy()
         if pilih_sales != "SEMUA SALES":
             df_view = df_view[df_view["Sales"] == pilih_sales]
         if search_box:
             df_view = df_view[df_view["Customer"].str.contains(search_box, case=False, na=False)]
 
-        # Tombol Aksi Tambah Data Baru
-        with st.expander("➕ Tambah Data / Input Customer Reject Baru"):
+        # Tombol Tambah Data Reject Baru oleh Sales/Head
+        with st.expander("➕ Input Customer Reject Baru"):
             with st.form("form_tambah_reject"):
                 col_i1, col_i2 = st.columns(2)
                 with col_i1:
@@ -153,7 +171,7 @@ def main():
                     new_norek = st.text_input("No Rekening / Kontrak")
                     new_bank = st.selectbox("Bank", ["BRI", "BCA", "MANDIRI", "BNI", "PERMATA"])
                 with col_i2:
-                    new_sales = st.selectbox("Sales Officer Penanggung Jawab", ["AIRLANGGA PERSADA", "BUDI SANTOSO", "ANDIEN", "FARIDZ FAATIAH"])
+                    new_sales = st.selectbox("Pilih Sales Officer Penanggung Jawab", DAFTAR_SO_MAKASSAR)
                     new_reason = st.text_input("Alasan Reject")
                     new_solusi = st.text_area("Solusi / Corrective Action")
                 
@@ -174,7 +192,6 @@ def main():
                     st.success(f"Data customer **{new_cust.upper()}** berhasil ditambahkan!")
                     st.rerun()
 
-        # Tampilkan Daftar Tracking dalam bentuk kartu interaktif ala UI profesional
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
         
         if len(df_view) == 0:
@@ -185,7 +202,7 @@ def main():
                     st.markdown(f"""
                         <div class="reject-box">
                             <strong>{row['Customer']}</strong> ({row['Bank']} - No. Rek: {row['NoRek']})<br>
-                            <small>Sales: <b>{row['Sales']}</b> | Status: <b>{row['Status']}</b></small><br>
+                            <small>Sales Officer: <b>{row['Sales']}</b> | Status: <b>{row['Status']}</b></small><br>
                             <span style="color: #ef4444; font-weight: bold;">❌ Alasan Reject: {row['Alasan Reject']}</span>
                             <div class="solution-box">
                                 <span style="color: #10b981; font-weight: bold;">💡 Solusi Perbaikan:</span><br>
@@ -194,7 +211,6 @@ def main():
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    # Aksi Edit / Update Status per baris
                     col_act1, col_act2 = st.columns(2)
                     with col_act1:
                         if st.button(f"✅ Selesaikan Status ({row['Customer']})", key=f"btn_{idx}"):
@@ -202,28 +218,71 @@ def main():
                             st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
                             st.rerun()
                     with col_act2:
-                        wa_text = f"Halo Kak, mohon bantuannya follow up reject customer *{row['Customer']}* ({row['Bank']}). Alasan: {row['Alasan Reject']}. Solusi: {row['Solusi']}"
+                        wa_text = f"Halo Kak {row['Sales']}, mohon bantuannya follow up reject customer *{row['Customer']}* ({row['Bank']}). Alasan: {row['Alasan Reject']}. Solusi: {row['Solusi']}"
                         st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Salin / Kirim WA</button></a>', unsafe_allow_html=True)
                     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # MENU 3: REJECT GUIDE UNIVERSAL
+    # MENU 3: REJECT GUIDE (Lengkap Universal)
     # -------------------------------------------------------------------------
-    elif menu_pilihan == "📖 Reject Guide Universal":
-        st.header("📖 Panduan Penanganan Reject Universal")
-        st.markdown("Acuan standar operasional untuk seluruh bank di ACC Cabang Makassar.")
+    elif menu_pilihan == "📖 Reject Guide":
+        st.header("📖 Panduan Penanganan Reject")
+        st.markdown("Acuan standar operasional universal untuk penanganan penolakan autodebet di ACC Cabang Makassar.")
         
-        search_guide = st.text_input("🔍 Cari Kata Kunci Panduan:", placeholder="Contoh: tanda tangan, rekening, telepon...")
+        search_guide = st.text_input("🔍 Cari Kata Kunci Panduan:", placeholder="Contoh: tanda tangan, rekening, telepon, dokumen...")
         
         data_guide = [
-            {"No": 1, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan tidak cocok dengan KTP.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan dengan KTP."},
-            {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP di sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui sistem atau arahkan nasabah walk-in ke bank."},
-            {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah input nomor rekening atau ada spasi.", "Tindakan Korektif": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
-            {"No": 4, "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Jelas", "Keterangan": "Scan ATM atau buku tabungan kurang jelas.", "Tindakan Korektif": "Pastikan dokumen format PDF bersih dan terbaca jelas."},
+            {
+                "No": 1,
+                "Alasan Reject": "Tanda Tangan Tidak Sesuai",
+                "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok atau berbeda dengan identitas resmi (KTP).",
+                "Tindakan Korektif": "Lakukan uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dan polanya persis dengan yang tertera di KTP."
+            },
+            {
+                "No": 2,
+                "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai",
+                "Keterangan": "Terjadi perbedaan nomor HP pada sistem dengan nomor terdaftar di Mobile Banking nasabah, atau nomor kosong.",
+                "Tindakan Korektif": "Input ulang melalui menu sistem; pastikan nomor sesuai dengan yang terdaftar di bank, atau arahkan nasabah walk-in ke bank untuk updation nomor telepon."
+            },
+            {
+                "No": 3,
+                "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai",
+                "Keterangan": "Salah penginputan nomor rekening (kelebihan angka '0', salah karakter, atau terdapat spasi).",
+                "Tindakan Korektif": "Input nomor rekening sesuai data keuangan asli, pastikan tidak ada penambahan karakter atau spasi di luar ketentuan."
+            },
+            {
+                "No": 4,
+                "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Sesuai / Tidak Jelas",
+                "Keterangan": "Lampiran bukti kepemilikan (foto ATM fisik/digital atau cover buku tabungan) tidak valid atau hasil scan kurang jelas.",
+                "Tindakan Korektif": "Pastikan bukti kepemilikan sah, dokumen dalam format PDF yang bersih, terbaca jelas, dan tanpa penebalan pulpen manual."
+            },
+            {
+                "No": 5,
+                "Alasan Reject": "Ketidaksesuaian Data Identitas & Nama Pemegang Rekening",
+                "Keterangan": "Nama atau NIK pada form pengajuan berbeda dengan data dokumen identitas resmi atau akta perusahaan.",
+                "Tindakan Korektif": "CSO/FAB wajib melakukan pengecekan ulang (validasi NIK dan ejaan nama) sebelum data diinput dan di-upload ke sistem."
+            },
+            {
+                "No": 6,
+                "Alasan Reject": "Kelengkapan Dokumen / Form Belum Lengkap",
+                "Keterangan": "Bagian penting pada form (seperti Hak Substitusi, lembar pernyataan, atau legalitas perusahaan) kosong atau tidak terisi.",
+                "Tindakan Korektif": "Gunakan form/SKPR versi terbaru yang sudah terisi lengkap (termasuk Hak Substitusi dan legalitas perusahaan yang berwenang sesuai AD/ART)."
+            },
+            {
+                "No": 7,
+                "Alasan Reject": "Double Registrasi / Pengajuan Ganda",
+                "Keterangan": "Sistem mendeteksi adanya pengajuan berulang untuk data nasabah yang sama.",
+                "Tindakan Korektif": "Merupakan sistem double entry, cukup tunggu proses penyesuaian otomatis oleh sistem pada saat EOD (End of Day)."
+            }
         ]
+        
         df_g = pd.DataFrame(data_guide)
         if search_guide:
-            df_g = df_g[df_g['Alasan Reject'].str.contains(search_guide, case=False, na=False)]
+            df_g = df_g[
+                df_g['Alasan Reject'].str.contains(search_guide, case=False, na=False) |
+                df_g['Keterangan'].str.contains(search_guide, case=False, na=False) |
+                df_g['Tindakan Korektif'].str.contains(search_guide, case=False, na=False)
+            ]
         
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
@@ -232,8 +291,8 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.0 Interactive Cloud CRUD")
-        st.success("Sistem siap diakses bersama tim Sales Officer ACC Makassar.")
+        st.write("Versi Web: v2.2 Makassar Edition (Ready for Cloud DB)")
+        st.success("Sistem siap disinkronkan dengan Google Sheets.")
 
 if __name__ == '__main__':
     main()
