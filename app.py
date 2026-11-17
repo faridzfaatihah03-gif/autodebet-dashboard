@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Mobile Friendly
+# Custom CSS Korporat Profesional & Berbingkai Rapi
 st.markdown("""
     <style>
     .main {
@@ -22,12 +22,24 @@ st.markdown("""
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         border-left: 5px solid #3b82f6;
+        border: 1px solid #374151;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .bank-card {
+        background-color: #1f2937;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border: 1px solid #374151;
+        text-align: center;
     }
     .reject-box {
         background-color: #1f2937;
         padding: 15px;
         border-radius: 8px;
         border-left: 4px solid #ef4444;
+        border: 1px solid #374151;
         margin-bottom: 15px;
     }
     .solution-box {
@@ -103,42 +115,96 @@ st.sidebar.info("💡 **ACC Makassar** - Sistem Kolaborasi & Tracking Operasiona
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD (Dengan Metrik & Success Rate per Bank)
+    # MENU 1: MONITORING DASHBOARD (Dengan Bingkai Rapi pada Semua Metrik)
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 AutoMonitor - ACC Cabang Makassar")
         st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan secara *real-time*.")
         
-        # Metrik Utama
+        # Metrik Utama dengan Bingkai
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Total Data Nasabah", "106,278", delta="Database Cabang")
+            st.markdown("""
+                <div class="metric-card">
+                    <span style="color: #9ca3af; font-size: 14px;">Total Nasabah Cabang</span>
+                    <h2 style="color: #3b82f6; margin: 5px 0;">1,420</h2>
+                    <small style="color: #10b981;">● Aktif Periode Ini</small>
+                </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.metric("Total Reject Aktif", len(st.session_state.data_tracking), delta="-2 hari ini", delta_color="inverse")
+            st.markdown(f"""
+                <div class="metric-card">
+                    <span style="color: #9ca3af; font-size: 14px;">Total Reject Aktif</span>
+                    <h2 style="color: #ef4444; margin: 5px 0;">{len(st.session_state.data_tracking)}</h2>
+                    <small style="color: #f59e0b;">● Perlu Tindak Lanjut</small>
+                </div>
+            """, unsafe_allow_html=True)
         with col3:
-            st.metric("Success Rate Cabang", "88.4%", delta="+1.2%")
+            st.markdown("""
+                <div class="metric-card">
+                    <span style="color: #9ca3af; font-size: 14px;">Success Rate Cabang</span>
+                    <h2 style="color: #10b981; margin: 5px 0;">88.4%</h2>
+                    <small style="color: #10b981;">● Gabungan 5 Bank</small>
+                </div>
+            """, unsafe_allow_html=True)
         with col4:
-            st.metric("Server Status", "Online 🚀", delta="Aman")
+            st.markdown("""
+                <div class="metric-card">
+                    <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
+                    <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
+                    <small style="color: #10b981;">● Real-Time Sync</small>
+                </div>
+            """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.subheader("📊 Persentase Success Rate per Bank")
-        st.markdown("Indikator keberhasilan registrasi autodebet berdasarkan bank mitra utama.")
+        st.subheader("📊 Persentase Success Rate per Bank (5 Bank Mitra)")
+        st.markdown("Indikator keberhasilan registrasi autodebet per bank khusus lingkup ACC Cabang Makassar.")
         
-        # Grid Metrik Success Rate per Bank
+        # Grid Metrik Success Rate per Bank dengan Bingkai Kardus Kustom
         b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
         with b_col1:
-            st.metric("BCA", "91.2%", delta="Stable")
+            st.markdown("""
+                <div class="bank-card">
+                    <b style="color: #60a5fa;">BCA</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">91.2%</h3>
+                    <small style="color: #10b981;">Stable</small>
+                </div>
+            """, unsafe_allow_html=True)
         with b_col2:
-            st.metric("BRI", "87.5%", delta="+0.8%")
+            st.markdown("""
+                <div class="bank-card">
+                    <b style="color: #60a5fa;">BRI</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">87.5%</h3>
+                    <small style="color: #10b981;">+0.8%</small>
+                </div>
+            """, unsafe_allow_html=True)
         with b_col3:
-            st.metric("MANDIRI", "89.1%", delta="Stable")
+            st.markdown("""
+                <div class="bank-card">
+                    <b style="color: #60a5fa;">MANDIRI</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">89.1%</h3>
+                    <small style="color: #10b981;">Stable</small>
+                </div>
+            """, unsafe_allow_html=True)
         with b_col4:
-            st.metric("BNI", "86.4%", delta="-0.5%")
+            st.markdown("""
+                <div class="bank-card">
+                    <b style="color: #60a5fa;">BNI</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">86.4%</h3>
+                    <small style="color: #ef4444;">-0.5%</small>
+                </div>
+            """, unsafe_allow_html=True)
         with b_col5:
-            st.metric("PERMATA", "85.0%", delta="Stable")
+            st.markdown("""
+                <div class="bank-card">
+                    <b style="color: #60a5fa;">PERMATA</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">85.0%</h3>
+                    <small style="color: #10b981;">Stable</small>
+                </div>
+            """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.info("💡 Gunakan menu **Sales Tracking Reject** untuk melakukan pemantauan dan tindak lanjut kasus penolakan bersama tim Sales Officer.")
+        st.info("💡 Gunakan menu **Sales Tracking Reject** di samping untuk melakukan pemantauan dan tindak lanjut kasus penolakan bersama tim Sales Officer.")
 
     # -------------------------------------------------------------------------
     # MENU 2: SALES TRACKING REJECT (INTERAKTIF)
@@ -223,7 +289,7 @@ def main():
                     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # MENU 3: REJECT GUIDE (Lengkap Universal)
+    # MENU 3: REJECT GUIDE
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📖 Reject Guide":
         st.header("📖 Panduan Penanganan Reject")
@@ -291,7 +357,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.2 Makassar Edition (Ready for Cloud DB)")
+        st.write("Versi Web: v2.3 Makassar Clean Edition")
         st.success("Sistem siap disinkronkan dengan Google Sheets.")
 
 if __name__ == '__main__':
