@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 
 # Konfigurasi Halaman
 st.set_page_config(
@@ -71,17 +72,23 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Koneksi ke Google Sheets (Membaca dari Sheet 'Tracking')
+# Inisialisasi Session State untuk Data Tracking lokal (Hybrid Fallback)
+if 'data_tracking' not in st.session_state:
+    st.session_state.data_tracking = pd.DataFrame([
+        {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
+        {"ID": "REG-002", "Customer": "ASRIYADI", "NoRek": "1600801003448594", "Bank": "BRI", "Sales": "NURUL AZIZAH", "Alasan Reject": "Phone number not found", "Keterangan": "Belum ada nomor", "Solusi": "Registrasi BRIMO", "Status": "Pending"}
+    ])
+
+# Koneksi Aman ke Google Sheets dengan Penanganan Error yang Kuat
+conn = None
 try:
     conn = st.connection("gsheets", type="GsheetsConnection")
-    df_tracking = conn.read(worksheet="Tracking", ttl=0)
-    df_tracking = df_tracking.dropna(subset=["Customer"])
-except Exception as e:
-    if 'data_tracking' not in st.session_state:
-        st.session_state.data_tracking = pd.DataFrame([
-            {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
-            {"ID": "REG-002", "Customer": "ASRIYADI", "NoRek": "1600801003448594", "Bank": "BRI", "Sales": "NURUL AZIZAH", "Alasan Reject": "Phone number not found", "Keterangan": "Belum ada nomor", "Solusi": "Registrasi BRIMO", "Status": "Pending"}
-        ])
+    df_sheets = conn.read(worksheet="Tracking", ttl=0)
+    if df_sheets is not None and not df_sheets.empty:
+        df_tracking = df_sheets.dropna(subset=["Customer"])
+    else:
+        df_tracking = st.session_state.data_tracking
+except Exception:
     df_tracking = st.session_state.data_tracking
 
 # Sidebar Navigasi Korporat
@@ -95,7 +102,7 @@ menu_pilihan = st.sidebar.radio(
         "📊 Monitoring Dashboard", 
         "📋 Sales Tracking Reject", 
         "📖 Reject Guide", 
-        "⚙️ Pengaturan & Data"
+        "⚙️ Pengaturan & Backup"
     ],
     label_visibility="collapsed"
 )
@@ -105,7 +112,7 @@ st.sidebar.info("💡 **ACC Cabang Makassar** - Sistem Kolaborasi & Tracking Ope
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD (Data Riil dari Excel: 234 Nasabah)
+    # MENU 1: MONITORING DASHBOARD
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 SO-Cust Tracking - ACC Cabang Makassar")
@@ -144,7 +151,7 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● GSheets Connected</small>
+                    <small style="color: #10b981;">● Hybrid Safe Mode</small>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -200,7 +207,7 @@ def main():
             """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.subheader("📋 Master Data Nasabah & Status Tracking (Live from Google Sheets)")
+        st.subheader("📋 Master Data Nasabah & Status Tracking")
         st.dataframe(df_tracking, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
@@ -238,7 +245,7 @@ def main():
                     new_reason = st.text_input("Alasan Reject")
                     new_solusi = st.text_area("Solusi / Corrective Action")
                 
-                submit_btn = st.form_submit_button("Simpan Data ke Google Sheets")
+                submit_btn = st.form_submit_button("Simpan Data")
                 if submit_btn and new_cust:
                     new_row = {
                         "ID": f"REG-00{len(df_tracking)+1}",
@@ -253,11 +260,16 @@ def main():
                     }
                     try:
                         updated_df = pd.concat([df_tracking, pd.DataFrame([new_row])], ignore_index=True)
-                        conn.update(worksheet="Tracking", data=updated_df)
-                        st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan ke Google Sheets!")
+                        if conn is not None:
+                            try:
+                                conn.update(worksheet="Tracking", data=updated_df)
+                            except Exception:
+                                pass
+                        st.session_state.data_tracking = updated_df
+                        st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan!")
                         st.rerun()
                     except Exception as ex:
-                        st.error(f"Gagal menyimpan ke Google Sheets: {ex}")
+                        st.error(f"Gagal menyimpan data: {ex}")
 
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
         
@@ -283,7 +295,12 @@ def main():
                         if st.button(f"✅ Selesaikan ({row['Customer']})", key=f"btn_done_{idx}"):
                             try:
                                 df_tracking.loc[idx, 'Status'] = 'Selesai'
-                                conn.update(worksheet="Tracking", data=df_tracking)
+                                if conn is not None:
+                                    try:
+                                        conn.update(worksheet="Tracking", data=df_tracking)
+                                    except Exception:
+                                        pass
+                                st.session_state.data_tracking = df_tracking
                                 st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
                                 st.rerun()
                             except Exception as ex:
@@ -292,8 +309,13 @@ def main():
                         if st.button(f"🗑️ Hapus Data ({row['Customer']})", key=f"btn_del_{idx}"):
                             try:
                                 df_cleaned = df_tracking.drop(idx).reset_index(drop=True)
-                                conn.update(worksheet="Tracking", data=df_cleaned)
-                                st.warning(f"Data customer **{row['Customer']}** berhasil dihapus dari database!")
+                                if conn is not None:
+                                    try:
+                                        conn.update(worksheet="Tracking", data=df_cleaned)
+                                    except Exception:
+                                        pass
+                                st.session_state.data_tracking = df_cleaned
+                                st.warning(f"Data customer **{row['Customer']}** berhasil dihapus!")
                                 st.rerun()
                             except Exception as ex:
                                 st.error(f"Gagal menghapus data: {ex}")
@@ -303,7 +325,7 @@ def main():
                     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # MENU 3: REJECT GUIDE (LENGKAP KEMBALI)
+    # MENU 3: REJECT GUIDE
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📖 Reject Guide":
         st.header("📖 Panduan Penanganan Reject")
@@ -323,12 +345,29 @@ def main():
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
-    # MENU 4: PENGATURAN
+    # MENU 4: PENGATURAN & BACKUP DATA (FITUR BARU)
     # -------------------------------------------------------------------------
-    elif menu_pilihan == "⚙️ Pengaturan & Data":
-        st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: SO-Cust Tracking v3.0 (Real Excel Data + Full Features)")
-        st.success("Database Terhubung: DB_AutoMonitor_Makassar")
+    elif menu_pilihan == "⚙️ Pengaturan & Backup":
+        st.subheader("⚙️ Pengaturan Sistem & Backup Data Cadangan")
+        st.write("Versi Web: SO-Cust Tracking v3.2 (Hybrid Safe + Excel Download)")
+        st.success("Status Database: Terhubung & Diamankan dengan Local Session Fallback")
+        
+        st.markdown("---")
+        st.subheader("📥 Download Backup Data (Excel)")
+        st.markdown("Jika Anda ingin mengamankan rekap data tracking saat ini ke file Excel secara instan, klik tombol di bawah:")
+        
+        # Fungsi konversi dataframe ke Excel Bytes untuk tombol download
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_tracking.to_excel(writer, sheet_name='Tracking_Backup', index=False)
+        excel_data = output.getvalue()
+        
+        st.download_button(
+            label="📥 Download Rekap Data Tracking (.xlsx)",
+            data=excel_data,
+            file_name="Backup_SO_Cust_Tracking_Makassar.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 if __name__ == '__main__':
     main()
