@@ -10,14 +10,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Berbingkai Rapi (Termasuk Sembunyikan Footer Streamlit)
+# Custom CSS Korporat & Pembersih Total Footer/Badge Streamlit
 st.markdown("""
     <style>
     .main {
         background-color: #0e1117;
     }
-    footer {visibility: hidden;}
-    .viewerBadge_container__1QSob {display: none;}
+    /* Sembunyikan footer dan semua lencana/badge Streamlit */
+    footer {display: none !important; visibility: hidden !important;}
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    div[data-testid="stToolbar"] {display: none !important;}
+    
     .metric-card {
         background-color: #1f2937;
         padding: 20px;
@@ -325,7 +330,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.7 Full Google Sheets Live Sync + Delete Feature")
+        st.write("Versi Web: v2.8 Full Google Sheets Live Sync + Clean UI")
         st.success("Database Terhubung: DB_AutoMonitor_Makassar")
 
 if __name__ == '__main__':
