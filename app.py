@@ -72,7 +72,7 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Inisialisasi Session State yang Tangguh & Stabil (Anti Error Merah)
+# Inisialisasi Session State yang Tangguh untuk Kolaborasi 44 SO
 if 'data_tracking' not in st.session_state:
     st.session_state.data_tracking = pd.DataFrame([
         {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
@@ -115,9 +115,9 @@ def main():
         with col1:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Data Cabang (Nov)</span>
-                    <h2 style="color: #3b82f6; margin: 5px 0;">234</h2>
-                    <small style="color: #10b981;">● Database Excel Riil</small>
+                    <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking</span>
+                    <h2 style="color: #3b82f6; margin: 5px 0;">{len(df_tracking)}</h2>
+                    <small style="color: #10b981;">● Live Active Records</small>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -141,7 +141,7 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● Stable & Fast Mode</small>
+                    <small style="color: #10b981;">● Stable Mode for 44 SO</small>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -324,7 +324,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Backup":
         st.subheader("⚙️ Pengaturan Sistem & Backup Data Cadangan")
-        st.write("Versi Web: SO-Cust Tracking v5.1 (High Speed Stable Mode)")
+        st.write("Versi Web: SO-Cust Tracking v5.2 (High Performance Stable Mode)")
         st.success("Status: Web Berjalan Normal, Bersih dari Error Merah, & Siap Digunakan")
         
         st.markdown("---")
