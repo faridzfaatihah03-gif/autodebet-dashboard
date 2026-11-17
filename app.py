@@ -72,24 +72,14 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Inisialisasi Session State untuk Data Tracking lokal (Hybrid Fallback)
-if 'data_tracking' not in st.session_state:
-    st.session_state.data_tracking = pd.DataFrame([
-        {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
-        {"ID": "REG-002", "Customer": "ASRIYADI", "NoRek": "1600801003448594", "Bank": "BRI", "Sales": "NURUL AZIZAH", "Alasan Reject": "Phone number not found", "Keterangan": "Belum ada nomor", "Solusi": "Registrasi BRIMO", "Status": "Pending"}
-    ])
-
-# Koneksi Aman ke Google Sheets dengan Penanganan Error yang Kuat
-conn = None
+# Koneksi Wajib ke Google Sheets (Database Utama)
 try:
     conn = st.connection("gsheets", type="GsheetsConnection")
-    df_sheets = conn.read(worksheet="Tracking", ttl=0)
-    if df_sheets is not None and not df_sheets.empty:
-        df_tracking = df_sheets.dropna(subset=["Customer"])
-    else:
-        df_tracking = st.session_state.data_tracking
-except Exception:
-    df_tracking = st.session_state.data_tracking
+    df_tracking = conn.read(worksheet="Tracking", ttl=0)
+    df_tracking = df_tracking.dropna(subset=["Customer"])
+except Exception as e:
+    st.error(f"Gagal terhubung ke Google Sheets: {e}. Pastikan pengaturan Secrets dan izin Sharing file sudah benar.")
+    df_tracking = pd.DataFrame(columns=["ID", "Customer", "NoRek", "Bank", "Sales", "Alasan Reject", "Keterangan", "Solusi", "Status"])
 
 # Sidebar Navigasi Korporat
 st.sidebar.title("SO-Cust Tracking")
@@ -118,16 +108,16 @@ def main():
         st.title("🚗 SO-Cust Tracking - ACC Cabang Makassar")
         st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan berdasarkan data riil cabang.")
         
-        total_reject = len(df_tracking[df_tracking['Status'].astype(str).str.lower() == 'pending'])
+        total_reject = len(df_tracking[df_tracking['Status'].astype(str).str.lower() == 'pending']) if not df_tracking.empty else 0
         
         # Metrik Utama dengan Bingkai
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Data Cabang (Nov)</span>
-                    <h2 style="color: #3b82f6; margin: 5px 0;">234</h2>
-                    <small style="color: #10b981;">● Database Excel Riil</small>
+                    <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking (GSheets)</span>
+                    <h2 style="color: #3b82f6; margin: 5px 0;">{len(df_tracking)}</h2>
+                    <small style="color: #10b981;">● Live Database</small>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -151,12 +141,12 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● Hybrid Safe Mode</small>
+                    <small style="color: #10b981;">● GSheets Direct Sync</small>
                 </div>
             """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.subheader("📊 Statistik Volume & Performa per Bank (Data Mentah Cabang Makassar)")
+        st.subheader("📊 Statistik Volume & Performa per Bank (Data Cabang Makassar)")
         
         # Grid Perbankan Berdasarkan Data Riil Excel (Total 234 Nasabah)
         b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
@@ -207,11 +197,11 @@ def main():
             """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.subheader("📋 Master Data Nasabah & Status Tracking")
+        st.subheader("📋 Master Data Nasabah & Status Tracking (Live Google Sheets)")
         st.dataframe(df_tracking, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
-    # MENU 2: SALES TRACKING REJECT (INTERAKTIF & TOMBOL HAPUS)
+    # MENU 2: SALES TRACKING REJECT (INTERAKTIF LANGSUNG KE SHEETS)
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📋 Sales Tracking Reject":
         st.title("📋 Sales Tracking Reject")
@@ -232,7 +222,7 @@ def main():
         if search_box:
             df_view = df_view[df_view["Customer"].astype(str).str.contains(search_box, case=False, na=False)]
 
-        # Tombol Tambah Data Reject Baru
+        # Tombol Tambah Data Reject Baru langsung ke Google Sheets
         with st.expander("➕ Input Customer Reject Baru"):
             with st.form("form_tambah_reject"):
                 col_i1, col_i2 = st.columns(2)
@@ -245,7 +235,7 @@ def main():
                     new_reason = st.text_input("Alasan Reject")
                     new_solusi = st.text_area("Solusi / Corrective Action")
                 
-                submit_btn = st.form_submit_button("Simpan Data")
+                submit_btn = st.form_submit_button("Simpan ke Google Sheets")
                 if submit_btn and new_cust:
                     new_row = {
                         "ID": f"REG-00{len(df_tracking)+1}",
@@ -260,16 +250,11 @@ def main():
                     }
                     try:
                         updated_df = pd.concat([df_tracking, pd.DataFrame([new_row])], ignore_index=True)
-                        if conn is not None:
-                            try:
-                                conn.update(worksheet="Tracking", data=updated_df)
-                            except Exception:
-                                pass
-                        st.session_state.data_tracking = updated_df
-                        st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan!")
+                        conn.update(worksheet="Tracking", data=updated_df)
+                        st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan langsung ke Google Sheets!")
                         st.rerun()
                     except Exception as ex:
-                        st.error(f"Gagal menyimpan data: {ex}")
+                        st.error(f"Gagal menyimpan ke Google Sheets: {ex}")
 
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
         
@@ -295,13 +280,8 @@ def main():
                         if st.button(f"✅ Selesaikan ({row['Customer']})", key=f"btn_done_{idx}"):
                             try:
                                 df_tracking.loc[idx, 'Status'] = 'Selesai'
-                                if conn is not None:
-                                    try:
-                                        conn.update(worksheet="Tracking", data=df_tracking)
-                                    except Exception:
-                                        pass
-                                st.session_state.data_tracking = df_tracking
-                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
+                                conn.update(worksheet="Tracking", data=df_tracking)
+                                st.success(f"Status {row['Customer']} diperbarui di Google Sheets!")
                                 st.rerun()
                             except Exception as ex:
                                 st.error(f"Gagal memperbarui status: {ex}")
@@ -309,13 +289,8 @@ def main():
                         if st.button(f"🗑️ Hapus Data ({row['Customer']})", key=f"btn_del_{idx}"):
                             try:
                                 df_cleaned = df_tracking.drop(idx).reset_index(drop=True)
-                                if conn is not None:
-                                    try:
-                                        conn.update(worksheet="Tracking", data=df_cleaned)
-                                    except Exception:
-                                        pass
-                                st.session_state.data_tracking = df_cleaned
-                                st.warning(f"Data customer **{row['Customer']}** berhasil dihapus!")
+                                conn.update(worksheet="Tracking", data=df_cleaned)
+                                st.warning(f"Data customer **{row['Customer']}** dihapus dari Google Sheets!")
                                 st.rerun()
                             except Exception as ex:
                                 st.error(f"Gagal menghapus data: {ex}")
@@ -345,18 +320,17 @@ def main():
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
-    # MENU 4: PENGATURAN & BACKUP DATA (FITUR BARU)
+    # MENU 4: PENGATURAN & BACKUP
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Backup":
         st.subheader("⚙️ Pengaturan Sistem & Backup Data Cadangan")
-        st.write("Versi Web: SO-Cust Tracking v3.2 (Hybrid Safe + Excel Download)")
-        st.success("Status Database: Terhubung & Diamankan dengan Local Session Fallback")
+        st.write("Versi Web: SO-Cust Tracking v4.0 (Strict Google Sheets Live Sync)")
+        st.success("Database Utama: Terhubung ke Google Sheets (`DB_AutoMonitor_Makassar`)")
         
         st.markdown("---")
         st.subheader("📥 Download Backup Data (Excel)")
-        st.markdown("Jika Anda ingin mengamankan rekap data tracking saat ini ke file Excel secara instan, klik tombol di bawah:")
+        st.markdown("Cadangkan data terkini ke file Excel (.xlsx) sebagai langkah antisipasi offline:")
         
-        # Fungsi konversi dataframe ke Excel Bytes untuk tombol download
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df_tracking.to_excel(writer, sheet_name='Tracking_Backup', index=False)
