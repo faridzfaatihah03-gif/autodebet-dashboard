@@ -1,21 +1,25 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 # Konfigurasi Halaman
 st.set_page_config(
-    page_title="AutoMonitor - ACC Cabang Makassar",
+    page_title="SO-Cust Tracking - ACC Cabang Makassar",
     page_icon="🚗",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Berbingkai Rapi
+# Custom CSS Korporat Profesional & Pembersih Footer Streamlit
 st.markdown("""
     <style>
     .main {
         background-color: #0e1117;
     }
+    footer {display: none !important; visibility: hidden !important;}
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    
     .metric-card {
         background-color: #1f2937;
         padding: 20px;
@@ -70,12 +74,9 @@ DAFTAR_SO_MAKASSAR = [
 # Koneksi ke Google Sheets (Membaca dari Sheet 'Tracking')
 try:
     conn = st.connection("gsheets", type="GsheetsConnection")
-    # Membaca data tracking secara live dari Google Sheets
     df_tracking = conn.read(worksheet="Tracking", ttl=0)
-    # Bersihkan baris kosong jika ada
     df_tracking = df_tracking.dropna(subset=["Customer"])
 except Exception as e:
-    # Fallback jika belum tersetting secrets-nya di cloud
     if 'data_tracking' not in st.session_state:
         st.session_state.data_tracking = pd.DataFrame([
             {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
@@ -84,7 +85,7 @@ except Exception as e:
     df_tracking = st.session_state.data_tracking
 
 # Sidebar Navigasi Korporat
-st.sidebar.title("AutoMonitor ACC")
+st.sidebar.title("SO-Cust Tracking")
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Menu Utama:**")
 
@@ -100,15 +101,15 @@ menu_pilihan = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **ACC Makassar** - Sistem Kolaborasi & Tracking Operasional Lapangan.")
+st.sidebar.info("💡 **ACC Cabang Makassar** - Sistem Kolaborasi & Tracking Operasional Lapangan.")
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD
+    # MENU 1: MONITORING DASHBOARD (Data Riil dari Excel: 234 Nasabah)
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
-        st.title("🚗 AutoMonitor - ACC Cabang Makassar")
-        st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan secara *real-time*.")
+        st.title("🚗 SO-Cust Tracking - ACC Cabang Makassar")
+        st.markdown("Dashboard utama pemantauan proses autodebet dan performa perbankan berdasarkan data riil cabang.")
         
         total_reject = len(df_tracking[df_tracking['Status'].astype(str).str.lower() == 'pending'])
         
@@ -117,9 +118,9 @@ def main():
         with col1:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking</span>
-                    <h2 style="color: #3b82f6; margin: 5px 0;">{len(df_tracking)}</h2>
-                    <small style="color: #10b981;">● Live Database</small>
+                    <span style="color: #9ca3af; font-size: 14px;">Total Data Cabang (Nov)</span>
+                    <h2 style="color: #3b82f6; margin: 5px 0;">234</h2>
+                    <small style="color: #10b981;">● Database Excel Riil</small>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -134,8 +135,8 @@ def main():
             st.markdown("""
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Success Rate Cabang</span>
-                    <h2 style="color: #10b981; margin: 5px 0;">88.4%</h2>
-                    <small style="color: #10b981;">● Gabungan 5 Bank</small>
+                    <h2 style="color: #10b981; margin: 5px 0;">85.0%</h2>
+                    <small style="color: #10b981;">● Gabungan 5 Bank Utama</small>
                 </div>
             """, unsafe_allow_html=True)
         with col4:
@@ -143,58 +144,58 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● GSheets Active</small>
+                    <small style="color: #10b981;">● GSheets Connected</small>
                 </div>
             """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.subheader("📊 Persentase Success Rate & Volume per Bank (5 Bank Mitra)")
+        st.subheader("📊 Statistik Volume & Performa per Bank (Data Mentah Cabang Makassar)")
         
-        # Grid Metrik Success Rate + Total Nasabah per Bank dengan Warna Khusus
+        # Grid Perbankan Berdasarkan Data Riil Excel (Total 234 Nasabah)
         b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
         with b_col1:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #3b82f6; font-size: 16px;">BCA</b>
-                    <h3 style="margin: 5px 0; color: #f3f4f6;">91.2%</h3>
-                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>450</b> Nasabah</span><br>
-                    <small style="color: #10b981;">Stable</small>
+                    <b style="color: #3b82f6; font-size: 16px;">BRI</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">86.9%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>122</b> Nasabah</span><br>
+                    <small style="color: #10b981;">Dominan</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col2:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #6366f1; font-size: 16px;">BRI</b>
-                    <h3 style="margin: 5px 0; color: #f3f4f6;">87.5%</h3>
-                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>380</b> Nasabah</span><br>
-                    <small style="color: #10b981;">+0.8%</small>
+                    <b style="color: #f59e0b; font-size: 16px;">MANDIRI</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">85.7%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>35</b> Nasabah</span><br>
+                    <small style="color: #10b981;">Stable</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col3:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #f59e0b; font-size: 16px;">MANDIRI</b>
-                    <h3 style="margin: 5px 0; color: #f3f4f6;">89.1%</h3>
-                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>310</b> Nasabah</span><br>
-                    <small style="color: #10b981;">Stable</small>
+                    <b style="color: #3b82f6; font-size: 16px;">BCA</b>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">91.6%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>24</b> Nasabah</span><br>
+                    <small style="color: #10b981;">Top Rate</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col4:
             st.markdown("""
                 <div class="bank-card">
                     <b style="color: #f97316; font-size: 16px;">BNI</b>
-                    <h3 style="margin: 5px 0; color: #f3f4f6;">86.4%</h3>
-                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>160</b> Nasabah</span><br>
-                    <small style="color: #ef4444;">-0.5%</small>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">83.3%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>24</b> Nasabah</span><br>
+                    <small style="color: #10b981;">Stable</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col5:
             st.markdown("""
                 <div class="bank-card">
                     <b style="color: #10b981; font-size: 16px;">PERMATA</b>
-                    <h3 style="margin: 5px 0; color: #f3f4f6;">85.0%</h3>
-                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>120</b> Nasabah</span><br>
-                    <small style="color: #10b981;">Stable</small>
+                    <h3 style="margin: 5px 0; color: #f3f4f6;">100.0%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>3</b> Nasabah</span><br>
+                    <small style="color: #10b981;">Perfect</small>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -203,7 +204,7 @@ def main():
         st.dataframe(df_tracking, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
-    # MENU 2: SALES TRACKING REJECT (INTERAKTIF)
+    # MENU 2: SALES TRACKING REJECT (INTERAKTIF & TOMBOL HAPUS)
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📋 Sales Tracking Reject":
         st.title("📋 Sales Tracking Reject")
@@ -251,7 +252,6 @@ def main():
                         "Status": "Pending"
                     }
                     try:
-                        # Menambahkan baris baru langsung ke Google Sheets
                         updated_df = pd.concat([df_tracking, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(worksheet="Tracking", data=updated_df)
                         st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan ke Google Sheets!")
@@ -278,23 +278,32 @@ def main():
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    col_act1, col_act2 = st.columns(2)
+                    col_act1, col_act2, col_act3 = st.columns(3)
                     with col_act1:
-                        if st.button(f"✅ Selesaikan Status ({row['Customer']})", key=f"btn_{idx}"):
+                        if st.button(f"✅ Selesaikan ({row['Customer']})", key=f"btn_done_{idx}"):
                             try:
                                 df_tracking.loc[idx, 'Status'] = 'Selesai'
                                 conn.update(worksheet="Tracking", data=df_tracking)
-                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai di Google Sheets!")
+                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
                                 st.rerun()
                             except Exception as ex:
                                 st.error(f"Gagal memperbarui status: {ex}")
                     with col_act2:
+                        if st.button(f"🗑️ Hapus Data ({row['Customer']})", key=f"btn_del_{idx}"):
+                            try:
+                                df_cleaned = df_tracking.drop(idx).reset_index(drop=True)
+                                conn.update(worksheet="Tracking", data=df_cleaned)
+                                st.warning(f"Data customer **{row['Customer']}** berhasil dihapus dari database!")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"Gagal menghapus data: {ex}")
+                    with col_act3:
                         wa_text = f"Halo Kak {row['Sales']}, mohon bantuannya follow up reject customer *{row['Customer']}* ({row['Bank']}). Alasan: {row['Alasan Reject']}. Solusi: {row['Solusi']}"
-                        st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Salin / Kirim WA</button></a>', unsafe_allow_html=True)
+                        st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Kirim WA</button></a>', unsafe_allow_html=True)
                     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # MENU 3: REJECT GUIDE
+    # MENU 3: REJECT GUIDE (LENGKAP KEMBALI)
     # -------------------------------------------------------------------------
     elif menu_pilihan == "📖 Reject Guide":
         st.header("📖 Panduan Penanganan Reject")
@@ -303,10 +312,10 @@ def main():
         search_guide = st.text_input("🔍 Cari Kata Kunci Panduan:", placeholder="Contoh: tanda tangan, rekening, telepon, dokumen...")
         
         data_guide = [
-            {"No": 1, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok dengan KTP.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dengan KTP."},
-            {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP pada sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui menu sistem atau arahkan nasabah walk-in ke bank untuk updation no telp."},
-            {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi.", "Tindakan Korektid": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
-            {"No": 4, "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Jelas", "Keterangan": "Lampiran bukti kepemilikan ATM/buku tabungan kurang jelas.", "Tindakan Korektif": "Pastikan dokumen format PDF bersih, terbaca jelas, dan sah."}
+            {"No": 1, "Alasan Reject": "Phone number is not correct", "Keterangan": "Terjadi perbedaan nomor telepon customer di AOL Autodebet dan BRIMO.", "Tindakan Korektif": "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon sesuai dengan yang terdaftar di Bank/BRIMO."},
+            {"No": 2, "Alasan Reject": "Phone number not found", "Keterangan": "Pada saat pembukaan rekening awal, customer belum mencantumkan nomor telepon ke bank.", "Tindakan Korektif": "Arahkan Customer untuk melakukan pembaruan data nomor HP di bank terkait."},
+            {"No": 3, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok dengan spesimen KTP/Bank.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dengan KTP."},
+            {"No": 4, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi karakter.", "Tindakan Korektif": "Input nomor rekening sesuai data keuangan asli tanpa spasi."}
         ]
         df_g = pd.DataFrame(data_guide)
         if search_guide:
@@ -318,7 +327,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.6 Full Google Sheets Live Sync")
+        st.write("Versi Web: SO-Cust Tracking v3.0 (Real Excel Data + Full Features)")
         st.success("Database Terhubung: DB_AutoMonitor_Makassar")
 
 if __name__ == '__main__':
