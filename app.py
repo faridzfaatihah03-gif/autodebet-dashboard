@@ -10,12 +10,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Berbingkai Rapi
+# Custom CSS Korporat Profesional & Berbingkai Rapi (Termasuk Sembunyikan Footer Streamlit)
 st.markdown("""
     <style>
     .main {
         background-color: #0e1117;
     }
+    footer {visibility: hidden;}
+    .viewerBadge_container__1QSob {display: none;}
     .metric-card {
         background-color: #1f2937;
         padding: 20px;
@@ -70,12 +72,9 @@ DAFTAR_SO_MAKASSAR = [
 # Koneksi ke Google Sheets (Membaca dari Sheet 'Tracking')
 try:
     conn = st.connection("gsheets", type="GsheetsConnection")
-    # Membaca data tracking secara live dari Google Sheets
     df_tracking = conn.read(worksheet="Tracking", ttl=0)
-    # Bersihkan baris kosong jika ada
     df_tracking = df_tracking.dropna(subset=["Customer"])
 except Exception as e:
-    # Fallback jika belum tersetting secrets-nya di cloud
     if 'data_tracking' not in st.session_state:
         st.session_state.data_tracking = pd.DataFrame([
             {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
@@ -143,7 +142,7 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● GSheets Active</small>
+                    <small style="color: #10b981;">● GSheets Connected</small>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -251,7 +250,6 @@ def main():
                         "Status": "Pending"
                     }
                     try:
-                        # Menambahkan baris baru langsung ke Google Sheets
                         updated_df = pd.concat([df_tracking, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(worksheet="Tracking", data=updated_df)
                         st.success(f"Data customer **{new_cust.upper()}** berhasil disimpan ke Google Sheets!")
@@ -278,19 +276,28 @@ def main():
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    col_act1, col_act2 = st.columns(2)
+                    col_act1, col_act2, col_act3 = st.columns(3)
                     with col_act1:
-                        if st.button(f"✅ Selesaikan Status ({row['Customer']})", key=f"btn_{idx}"):
+                        if st.button(f"✅ Selesaikan ({row['Customer']})", key=f"btn_done_{idx}"):
                             try:
                                 df_tracking.loc[idx, 'Status'] = 'Selesai'
                                 conn.update(worksheet="Tracking", data=df_tracking)
-                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai di Google Sheets!")
+                                st.success(f"Status {row['Customer']} diperbarui menjadi Selesai!")
                                 st.rerun()
                             except Exception as ex:
                                 st.error(f"Gagal memperbarui status: {ex}")
                     with col_act2:
+                        if st.button(f"🗑️ Hapus Data ({row['Customer']})", key=f"btn_del_{idx}"):
+                            try:
+                                df_cleaned = df_tracking.drop(idx).reset_index(drop=True)
+                                conn.update(worksheet="Tracking", data=df_cleaned)
+                                st.warning(f"Data customer **{row['Customer']}** berhasil dihapus dari database!")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"Gagal menghapus data: {ex}")
+                    with col_act3:
                         wa_text = f"Halo Kak {row['Sales']}, mohon bantuannya follow up reject customer *{row['Customer']}* ({row['Bank']}). Alasan: {row['Alasan Reject']}. Solusi: {row['Solusi']}"
-                        st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Salin / Kirim WA</button></a>', unsafe_allow_html=True)
+                        st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Kirim WA</button></a>', unsafe_allow_html=True)
                     st.markdown("---")
 
     # -------------------------------------------------------------------------
@@ -305,7 +312,7 @@ def main():
         data_guide = [
             {"No": 1, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok dengan KTP.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dengan KTP."},
             {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP pada sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui menu sistem atau arahkan nasabah walk-in ke bank untuk updation no telp."},
-            {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi.", "Tindakan Korektid": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
+            {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi.", "Tindakan Korektif": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
             {"No": 4, "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Jelas", "Keterangan": "Lampiran bukti kepemilikan ATM/buku tabungan kurang jelas.", "Tindakan Korektif": "Pastikan dokumen format PDF bersih, terbaca jelas, dan sah."}
         ]
         df_g = pd.DataFrame(data_guide)
@@ -318,7 +325,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.6 Full Google Sheets Live Sync")
+        st.write("Versi Web: v2.7 Full Google Sheets Live Sync + Delete Feature")
         st.success("Database Terhubung: DB_AutoMonitor_Makassar")
 
 if __name__ == '__main__':
