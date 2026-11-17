@@ -115,7 +115,7 @@ st.sidebar.info("💡 **ACC Makassar** - Sistem Kolaborasi & Tracking Operasiona
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD (Dengan Bingkai Rapi pada Semua Metrik)
+    # MENU 1: MONITORING DASHBOARD (Dengan Warna Bank & Total Nasabah per Bank)
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 AutoMonitor - ACC Cabang Makassar")
@@ -157,48 +157,53 @@ def main():
             """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.subheader("📊 Persentase Success Rate per Bank (5 Bank Mitra)")
-        st.markdown("Indikator keberhasilan registrasi autodebet per bank khusus lingkup ACC Cabang Makassar.")
+        st.subheader("📊 Persentase Success Rate & Volume per Bank (5 Bank Mitra)")
+        st.markdown("Indikator keberhasilan registrasi autodebet dan total volume nasabah per bank khusus lingkup ACC Cabang Makassar.")
         
-        # Grid Metrik Success Rate per Bank dengan Bingkai Kardus Kustom
+        # Grid Metrik Success Rate + Total Nasabah per Bank dengan Warna Khusus
         b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
         with b_col1:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #60a5fa;">BCA</b>
+                    <b style="color: #3b82f6; font-size: 16px;">BCA</b>
                     <h3 style="margin: 5px 0; color: #f3f4f6;">91.2%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>450</b> Nasabah</span><br>
                     <small style="color: #10b981;">Stable</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col2:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #60a5fa;">BRI</b>
+                    <b style="color: #6366f1; font-size: 16px;">BRI</b>
                     <h3 style="margin: 5px 0; color: #f3f4f6;">87.5%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>380</b> Nasabah</span><br>
                     <small style="color: #10b981;">+0.8%</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col3:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #60a5fa;">MANDIRI</b>
+                    <b style="color: #f59e0b; font-size: 16px;">MANDIRI</b>
                     <h3 style="margin: 5px 0; color: #f3f4f6;">89.1%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>310</b> Nasabah</span><br>
                     <small style="color: #10b981;">Stable</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col4:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #60a5fa;">BNI</b>
+                    <b style="color: #f97316; font-size: 16px;">BNI</b>
                     <h3 style="margin: 5px 0; color: #f3f4f6;">86.4%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>160</b> Nasabah</span><br>
                     <small style="color: #ef4444;">-0.5%</small>
                 </div>
             """, unsafe_allow_html=True)
         with b_col5:
             st.markdown("""
                 <div class="bank-card">
-                    <b style="color: #60a5fa;">PERMATA</b>
+                    <b style="color: #10b981; font-size: 16px;">PERMATA</b>
                     <h3 style="margin: 5px 0; color: #f3f4f6;">85.0%</h3>
+                    <span style="color: #9ca3af; font-size: 12px;">Total: <b>120</b> Nasabah</span><br>
                     <small style="color: #10b981;">Stable</small>
                 </div>
             """, unsafe_allow_html=True)
@@ -357,7 +362,7 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.3 Makassar Clean Edition")
+        st.write("Versi Web: v2.4 Makassar Bank Color Edition")
         st.success("Sistem siap disinkronkan dengan Google Sheets.")
 
 if __name__ == '__main__':
