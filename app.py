@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Pembersih Footer Streamlit
+# Custom CSS Korporat Profesional & Perbaikan Kontras Teks (Supaya Terbaca Jelas)
 st.markdown("""
     <style>
     .main {
@@ -41,18 +41,39 @@ st.markdown("""
     }
     .reject-box {
         background-color: #1f2937;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #ef4444;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 5px solid #ef4444;
         border: 1px solid #374151;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        color: #f3f4f6 !important;
+    }
+    .reject-box strong {
+        color: #ffffff !important;
+        font-size: 18px;
+    }
+    .reject-box small {
+        color: #9ca3af !important;
+        font-size: 14px;
+    }
+    .reject-reason {
+        color: #f87171 !important;
+        font-weight: bold;
+        font-size: 15px;
+        margin-top: 8px;
+        display: block;
     }
     .solution-box {
         background-color: #064e3b;
-        padding: 12px;
-        border-radius: 6px;
+        padding: 15px;
+        border-radius: 8px;
         border-left: 4px solid #10b981;
-        margin-top: 8px;
+        margin-top: 12px;
+        color: #ecfdf5 !important;
+    }
+    .solution-box span {
+        color: #34d399 !important;
+        font-weight: bold;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -72,7 +93,7 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Fungsi Memuat Data Langsung dari Google Sheets Publik via CSV
+# Fungsi Memuat Data dari Google Sheets Publik via CSV
 @st.cache_data(ttl=10)
 def load_data_sheets():
     sheet_id = "1eGeosnjBbMnAK0I0pbIcGtTBxlOYTN4eUgtz9X5CM2M"
@@ -82,7 +103,6 @@ def load_data_sheets():
         df = df.dropna(subset=["Customer"])
         return df
     except Exception:
-        # Fallback data aman jika link publik belum di-share
         return pd.DataFrame([
             {"ID": "REG-001", "Customer": "HENRI", "NoRek": "1600801003449078", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Alasan Reject": "Phone number is not correct", "Keterangan": "Perbedaan no telp", "Solusi": "Input ulang menu AOL CSO", "Status": "Pending"},
             {"ID": "REG-002", "Customer": "ASRIYADI", "NoRek": "1600801003448594", "Bank": "BRI", "Sales": "NURUL AZIZAH", "Alasan Reject": "Phone number not found", "Keterangan": "Belum ada nomor", "Solusi": "Registrasi BRIMO", "Status": "Pending"}
@@ -146,7 +166,7 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● Public CSV Connection</small>
+                    <small style="color: #10b981;">● Clean & Clear UI</small>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -188,7 +208,7 @@ def main():
         if search_box:
             df_view = df_view[df_view["Customer"].astype(str).str.contains(search_box, case=False, na=False)]
 
-        st.info("💡 **Catatan Input:** Untuk menambah, mengubah, atau menghapus data secara langsung ke database pusat, silakan akses file Google Sheets utama di bawah ini:")
+        st.info("💡 **Akses Database Pusat:** Untuk mengelola, menambah, atau menghapus data secara langsung, silakan buka Google Sheets utama.")
         st.markdown('<a href="https://docs.google.com/spreadsheets/d/1eGeosnjBbMnAK0I0pbIcGtTBxlOYTN4eUgtz9X5CM2M/edit" target="_blank"><button style="background-color:#10b981; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">📂 Buka Google Sheets Database Utama</button></a>', unsafe_allow_html=True)
 
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
@@ -202,16 +222,16 @@ def main():
                         <div class="reject-box">
                             <strong>{row.get('Customer', '-')}</strong> ({row.get('Bank', '-')} - No. Rek: {row.get('NoRek', '-')})<br>
                             <small>Sales Officer: <b>{row.get('Sales', '-')}</b> | Status: <b>{row.get('Status', 'Pending')}</b></small><br>
-                            <span style="color: #ef4444; font-weight: bold;">❌ Alasan Reject: {row.get('Alasan Reject', '-')}</span>
+                            <span class="reject-reason">❌ Alasan Reject: {row.get('Alasan Reject', '-')}</span>
                             <div class="solution-box">
-                                <span style="color: #10b981; font-weight: bold;">💡 Solusi Perbaikan:</span><br>
+                                <span>💡 Solusi Perbaikan:</span><br>
                                 {row.get('Solusi', '-')}
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
                     
                     wa_text = f"Halo Kak {row.get('Sales', '')}, mohon bantuannya follow up reject customer *{row.get('Customer', '')}* ({row.get('Bank', '')}). Alasan: {row.get('Alasan Reject', '')}"
-                    st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">💬 Kirim WA ke SO</button></a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="https://wa.me/?text={wa_text}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim WA ke SO</button></a>', unsafe_allow_html=True)
                     st.markdown("---")
 
     elif menu_pilihan == "📖 Reject Guide":
@@ -233,7 +253,7 @@ def main():
 
     elif menu_pilihan == "⚙️ Pengaturan & Database":
         st.subheader("⚙️ Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: SO-Cust Tracking v6.0 (Stable Public CSV Sync)")
+        st.write("Versi Web: SO-Cust Tracking v6.1 (Clean UI & High Contrast)")
         st.success("Status: Terhubung Sempurna ke Google Sheets Database Utama (`DB_AutoMonitor_Makassar`)")
         
         st.markdown("---")
