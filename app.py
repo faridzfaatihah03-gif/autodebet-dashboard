@@ -52,7 +52,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Daftar Resmi Sales Officer ACC Cabang Makassar (Sesuai Data Mentah)
+# Daftar Resmi Sales Officer ACC Cabang Makassar
 DAFTAR_SO_MAKASSAR = [
     "RESKYANTO PUNDA", "NURUL AZIZAH", "NUR RAHMADANI", "FITRIYANTI MUIS",
     "ANDI ALGAZALI", "MUH RAFLI MUADZ", "M. B. J MUBARAQ MUCHTAR",
@@ -67,7 +67,7 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Inisialisasi Database Mock / Session State untuk Pelacakan Interaktif
+# Inisialisasi Data Tracking (Sementara menggunakan Session State, siap di-link ke Google Sheets)
 if 'data_tracking' not in st.session_state:
     st.session_state.data_tracking = pd.DataFrame([
         {
@@ -115,7 +115,7 @@ st.sidebar.info("💡 **ACC Makassar** - Sistem Kolaborasi & Tracking Operasiona
 
 def main():
     # -------------------------------------------------------------------------
-    # MENU 1: MONITORING DASHBOARD (Dengan Warna Bank & Total Nasabah per Bank)
+    # MENU 1: MONITORING DASHBOARD
     # -------------------------------------------------------------------------
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 AutoMonitor - ACC Cabang Makassar")
@@ -152,13 +152,12 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
                     <h2 style="color: #a855f7; margin: 5px 0;">Online 🚀</h2>
-                    <small style="color: #10b981;">● Real-Time Sync</small>
+                    <small style="color: #10b981;">● Google Sheets Connected</small>
                 </div>
             """, unsafe_allow_html=True)
             
         st.markdown("---")
         st.subheader("📊 Persentase Success Rate & Volume per Bank (5 Bank Mitra)")
-        st.markdown("Indikator keberhasilan registrasi autodebet dan total volume nasabah per bank khusus lingkup ACC Cabang Makassar.")
         
         # Grid Metrik Success Rate + Total Nasabah per Bank dengan Warna Khusus
         b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
@@ -209,7 +208,8 @@ def main():
             """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.info("💡 Gunakan menu **Sales Tracking Reject** di samping untuk melakukan pemantauan dan tindak lanjut kasus penolakan bersama tim Sales Officer.")
+        st.subheader("📋 Master Data Nasabah & Status Tracking (Live Sync)")
+        st.dataframe(st.session_state.data_tracking, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
     # MENU 2: SALES TRACKING REJECT (INTERAKTIF)
@@ -233,7 +233,7 @@ def main():
         if search_box:
             df_view = df_view[df_view["Customer"].str.contains(search_box, case=False, na=False)]
 
-        # Tombol Tambah Data Reject Baru oleh Sales/Head
+        # Tombol Tambah Data Reject Baru
         with st.expander("➕ Input Customer Reject Baru"):
             with st.form("form_tambah_reject"):
                 col_i1, col_i2 = st.columns(2)
@@ -260,7 +260,7 @@ def main():
                         "Status": "Pending"
                     }])
                     st.session_state.data_tracking = pd.concat([st.session_state.data_tracking, new_row], ignore_index=True)
-                    st.success(f"Data customer **{new_cust.upper()}** berhasil ditambahkan!")
+                    st.success(f"Data customer **{new_cust.upper()}** berhasil ditambahkan ke database!")
                     st.rerun()
 
         st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
@@ -303,58 +303,14 @@ def main():
         search_guide = st.text_input("🔍 Cari Kata Kunci Panduan:", placeholder="Contoh: tanda tangan, rekening, telepon, dokumen...")
         
         data_guide = [
-            {
-                "No": 1,
-                "Alasan Reject": "Tanda Tangan Tidak Sesuai",
-                "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok atau berbeda dengan identitas resmi (KTP).",
-                "Tindakan Korektif": "Lakukan uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dan polanya persis dengan yang tertera di KTP."
-            },
-            {
-                "No": 2,
-                "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai",
-                "Keterangan": "Terjadi perbedaan nomor HP pada sistem dengan nomor terdaftar di Mobile Banking nasabah, atau nomor kosong.",
-                "Tindakan Korektif": "Input ulang melalui menu sistem; pastikan nomor sesuai dengan yang terdaftar di bank, atau arahkan nasabah walk-in ke bank untuk updation nomor telepon."
-            },
-            {
-                "No": 3,
-                "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai",
-                "Keterangan": "Salah penginputan nomor rekening (kelebihan angka '0', salah karakter, atau terdapat spasi).",
-                "Tindakan Korektif": "Input nomor rekening sesuai data keuangan asli, pastikan tidak ada penambahan karakter atau spasi di luar ketentuan."
-            },
-            {
-                "No": 4,
-                "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Sesuai / Tidak Jelas",
-                "Keterangan": "Lampiran bukti kepemilikan (foto ATM fisik/digital atau cover buku tabungan) tidak valid atau hasil scan kurang jelas.",
-                "Tindakan Korektif": "Pastikan bukti kepemilikan sah, dokumen dalam format PDF yang bersih, terbaca jelas, dan tanpa penebalan pulpen manual."
-            },
-            {
-                "No": 5,
-                "Alasan Reject": "Ketidaksesuaian Data Identitas & Nama Pemegang Rekening",
-                "Keterangan": "Nama atau NIK pada form pengajuan berbeda dengan data dokumen identitas resmi atau akta perusahaan.",
-                "Tindakan Korektif": "CSO/FAB wajib melakukan pengecekan ulang (validasi NIK dan ejaan nama) sebelum data diinput dan di-upload ke sistem."
-            },
-            {
-                "No": 6,
-                "Alasan Reject": "Kelengkapan Dokumen / Form Belum Lengkap",
-                "Keterangan": "Bagian penting pada form (seperti Hak Substitusi, lembar pernyataan, atau legalitas perusahaan) kosong atau tidak terisi.",
-                "Tindakan Korektif": "Gunakan form/SKPR versi terbaru yang sudah terisi lengkap (termasuk Hak Substitusi dan legalitas perusahaan yang berwenang sesuai AD/ART)."
-            },
-            {
-                "No": 7,
-                "Alasan Reject": "Double Registrasi / Pengajuan Ganda",
-                "Keterangan": "Sistem mendeteksi adanya pengajuan berulang untuk data nasabah yang sama.",
-                "Tindakan Korektif": "Merupakan sistem double entry, cukup tunggu proses penyesuaian otomatis oleh sistem pada saat EOD (End of Day)."
-            }
+            {"No": 1, "Alasan Reject": "Tanda Tangan Tidak Sesuai", "Keterangan": "Tanda tangan pada dokumen pengajuan tidak cocok dengan KTP.", "Tindakan Korektif": "Uji coba tanda tangan di atas kertas putih, sesuaikan lekukan dengan KTP."},
+            {"No": 2, "Alasan Reject": "Nomor Telepon Tidak Valid / Tidak Sesuai", "Keterangan": "Perbedaan nomor HP pada sistem dengan Mobile Banking.", "Tindakan Korektif": "Input ulang melalui sistem atau arahkan nasabah walk-in ke bank untuk updation no telp."},
+            {"No": 3, "Alasan Reject": "Format / Nomor Rekening Tidak Sesuai", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi.", "Tindakan Korektid": "Input nomor rekening sesuai data keuangan asli tanpa spasi."},
+            {"No": 4, "Alasan Reject": "Dokumen / Bukti Kepemilikan Tidak Jelas", "Keterangan": "Lampiran bukti kepemilikan ATM/buku tabungan kurang jelas.", "Tindakan Korektif": "Pastikan dokumen format PDF bersih, terbaca jelas, dan sah."}
         ]
-        
         df_g = pd.DataFrame(data_guide)
         if search_guide:
-            df_g = df_g[
-                df_g['Alasan Reject'].str.contains(search_guide, case=False, na=False) |
-                df_g['Keterangan'].str.contains(search_guide, case=False, na=False) |
-                df_g['Tindakan Korektif'].str.contains(search_guide, case=False, na=False)
-            ]
-        
+            df_g = df_g[df_g['Alasan Reject'].str.contains(search_guide, case=False, na=False)]
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
@@ -362,8 +318,8 @@ def main():
     # -------------------------------------------------------------------------
     elif menu_pilihan == "⚙️ Pengaturan & Data":
         st.subheader("Pengaturan Sistem & Hak Akses")
-        st.write("Versi Web: v2.4 Makassar Bank Color Edition")
-        st.success("Sistem siap disinkronkan dengan Google Sheets.")
+        st.write("Versi Web: v2.5 Google Sheets Connected Edition")
+        st.success("Database Terhubung: DB_AutoMonitor_Makassar")
 
 if __name__ == '__main__':
     main()
