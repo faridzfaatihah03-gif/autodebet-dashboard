@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Perbaikan Kontras Teks
+# Custom CSS Korporat Profesional & Nuansa Biru ACC
 st.markdown("""
     <style>
     .main {
@@ -24,8 +24,8 @@ st.markdown("""
     
     .tagline-pill {
         display: inline-block;
-        background: linear-gradient(90deg, #1e3a8a, #2563eb);
-        color: #eff6ff;
+        background: linear-gradient(90deg, #003399, #0055cc);
+        color: #ffffff;
         padding: 4px 14px;
         border-radius: 999px;
         font-size: 13px;
@@ -33,25 +33,59 @@ st.markdown("""
         letter-spacing: 0.6px;
         margin-top: 4px;
         margin-bottom: 10px;
-        border: 1px solid #3b82f6;
+        border: 1px solid #38bdf8;
     }
     .metric-card {
-        background-color: #1f2937;
+        background: linear-gradient(145deg, #002b7f 0%, #0044b3 100%);
         padding: 20px;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        border-left: 5px solid #3b82f6;
-        border: 1px solid #374151;
+        box-shadow: 0 4px 10px rgba(0, 35, 102, 0.45);
+        border: 1px solid #3b82f6;
         text-align: center;
         margin-bottom: 10px;
+        color: #ffffff !important;
+    }
+    .metric-label {
+        color: #dbeafe !important;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .metric-value {
+        color: #ffffff !important;
+        margin: 6px 0;
+        font-weight: 800;
+    }
+    .metric-sub {
+        color: #bae6fd !important;
+        font-size: 12.5px;
     }
     .bank-card {
-        background-color: #1f2937;
+        background: linear-gradient(160deg, #00266e 0%, #003d9e 100%);
         padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        border: 1px solid #374151;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 25, 80, 0.35);
+        border: 1px solid #2563eb;
         text-align: center;
+        color: #ffffff !important;
+        margin-bottom: 8px;
+    }
+    .bank-title {
+        color: #93c5fd !important;
+        font-size: 16px;
+        font-weight: 700;
+    }
+    .bank-rate {
+        margin: 6px 0;
+        color: #ffffff !important;
+        font-weight: 800;
+    }
+    .bank-sub {
+        color: #e0f2fe !important;
+        font-size: 12px;
+    }
+    .bank-badge {
+        color: #fef08a !important;
+        font-weight: 600;
     }
     .reject-box {
         background-color: #1f2937;
@@ -93,7 +127,7 @@ st.markdown("""
         background-color: #1f2937;
         padding: 20px;
         border-radius: 10px;
-        border-left: 5px solid #f59e0b;
+        border-left: 5px solid #0055cc;
         border: 1px solid #374151;
         margin-bottom: 14px;
         color: #f3f4f6 !important;
@@ -103,23 +137,33 @@ st.markdown("""
         font-size: 18px;
     }
     .bni-box small {
-        color: #9ca3af !important;
+        color: #cbd5e1 !important;
         font-size: 13.5px;
     }
-    .bni-action-box {
-        background-color: #1e293b;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #f59e0b;
-        margin-top: 12px;
-        color: #fef3c7 !important;
+    .ceklis-badge {
+        display: inline-block;
+        background-color: #065f46;
+        color: #6ee7b7;
+        border: 1px solid #10b981;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 13px;
+        margin-top: 6px;
     }
-    .bni-action-box span {
-        color: #fbbf24 !important;
-        font-weight: bold;
+    .belum-ceklis-badge {
+        display: inline-block;
+        background-color: #1e293b;
+        color: #93c5fd;
+        border: 1px solid #3b82f6;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-top: 6px;
     }
     .rekap-box {
-        background-color: #111827;
+        background-color: #0f172a;
         padding: 18px;
         border-radius: 10px;
         border: 1px solid #2563eb;
@@ -130,8 +174,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Daftar Resmi Sales Officer ACC Cabang Makassar
-DAFTAR_SO_MAKASSAR = [
+# Daftar Resmi Sales ACC Cabang Makassar
+DAFTAR_SALES_MAKASSAR = [
     "RESKYANTO PUNDA", "NURUL AZIZAH", "NUR RAHMADANI", "FITRIYANTI MUIS",
     "ANDI ALGAZALI", "MUH RAFLI MUADZ", "M. B. J MUBARAQ MUCHTAR",
     "SEPTIAN MAPPALONGI", "TAHWIL IRZAN", "AMINUDDIN A.", "ANDI IRVAN NATSIR",
@@ -181,49 +225,49 @@ REJECT_GUIDE_ITEMS = [
         "No": 1,
         "Alasan Reject": "Phone number is not correct",
         "Keterangan": "Nomor telepon nasabah tidak sesuai atau berbeda antara data pengajuan/AOL dengan data yang terdaftar di bank / mobile banking (misalnya BRIMO).",
-        "Tindakan Korektif / Solusi SO": "Input ulang melalui menu AOL Autodebet CSO dan pastikan nomor HP sesuai dengan yang terdaftar di Bank/BRIMO. Jika belum sinkron, arahkan nasabah walk-in ke bank untuk pembaruan nomor HP."
+        "Tindakan Korektif / Solusi Sales": "Input ulang melalui menu AOL Autodebet CSO dan pastikan nomor HP sesuai dengan yang terdaftar di Bank/BRIMO. Jika belum sinkron, arahkan nasabah walk-in ke bank untuk pembaruan nomor HP."
     },
     {
         "No": 2,
         "Alasan Reject": "Phone number not found",
         "Keterangan": "Nomor telepon nasabah belum terdaftar atau tidak ditemukan pada sistem bank terkait saat proses pendaftaran autodebet.",
-        "Tindakan Korektif / Solusi SO": "Arahkan nasabah melakukan registrasi atau pembaruan data nomor HP aktif di bank terkait terlebih dahulu, lalu ajukan ulang."
+        "Tindakan Korektif / Solusi Sales": "Arahkan nasabah melakukan registrasi atau pembaruan data nomor HP aktif di bank terkait terlebih dahulu, lalu ajukan ulang."
     },
     {
         "No": 3,
         "Alasan Reject": "Scan Kartu ATM Meragukan / No. Kartu ATM Invalid",
         "Keterangan": "Foto atau scan kartu ATM kurang jelas/buram, atau nasabah sudah melakukan penggantian kartu ATM sehingga nomor kartu lama sudah tidak berlaku.",
-        "Tindakan Korektif / Solusi SO": "Minta foto/scan kartu ATM terbaru yang jelas dan valid (pastikan tidak terpotong/buram), lalu lakukan pengajuan ulang."
+        "Tindakan Korektif / Solusi Sales": "Minta foto/scan kartu ATM terbaru yang jelas dan valid (pastikan tidak terpotong/buram), lalu lakukan pengajuan ulang."
     },
     {
         "No": 4,
         "Alasan Reject": "Tanda Tangan Tidak Menyentuh Materai / Tidak Sesuai",
         "Keterangan": "Tanda tangan pada form kuasa/SKPR tidak menyentuh materai atau tidak cocok dengan spesimen tanda tangan pada KTP/buku tabungan.",
-        "Tindakan Korektif / Solusi SO": "Lengkapi ulang tanda tangan di atas materai sesuai spesimen KTP/rekening bank nasabah dan pastikan tidak menyimpang dari batas ketentuan."
+        "Tindakan Korektif / Solusi Sales": "Lengkapi ulang tanda tangan di atas materai sesuai spesimen KTP/rekening bank nasabah dan pastikan tidak menyimpang dari batas ketentuan."
     },
     {
         "No": 5,
         "Alasan Reject": "Invalid format account number",
         "Keterangan": "Format nomor rekening tidak sesuai ketentuan bank, salah digit, atau terdapat spasi/karakter yang tidak valid.",
-        "Tindakan Korektif / Solusi SO": "Periksa kembali nomor rekening nasabah sesuai buku tabungan/rekening asli tanpa spasi atau karakter tambahan, lalu input ulang."
+        "Tindakan Korektif / Solusi Sales": "Periksa kembali nomor rekening nasabah sesuai buku tabungan/rekening asli tanpa spasi atau karakter tambahan, lalu input ulang."
     },
     {
         "No": 6,
         "Alasan Reject": "Saldo tidak mencukupi",
         "Keterangan": "Saldo rekening nasabah tidak mencukupi untuk memenuhi syarat minimum atau proses pendebetan/validasi.",
-        "Tindakan Korektif / Solusi SO": "Informasikan nasabah untuk memastikan saldo rekening mencukupi dan aktif sebelum proses penagihan/aktivasi berikutnya."
+        "Tindakan Korektif / Solusi Sales": "Informasikan nasabah untuk memastikan saldo rekening mencukupi dan aktif sebelum proses penagihan/aktivasi berikutnya."
     },
     {
         "No": 7,
         "Alasan Reject": "Rekening tidak aktif / dormant",
         "Keterangan": "Rekening sumber autodebet dalam status dormant (tidak aktif) atau diblokir/terbatas transaksinya.",
-        "Tindakan Korektif / Solusi SO": "Arahkan nasabah untuk mengaktifkan kembali rekening (reaktivasi dormant) di cabang bank terkait."
+        "Tindakan Korektif / Solusi Sales": "Arahkan nasabah untuk mengaktifkan kembali rekening (reaktivasi dormant) di cabang bank terkait."
     },
     {
         "No": 8,
         "Alasan Reject": "Data customer tidak sesuai",
         "Keterangan": "Terdapat ketidaksesuaian identitas nasabah (nama, NIK/KTP, atau data pendukung) antara kontrak/pengajuan dan data rekening bank.",
-        "Tindakan Korektif / Solusi SO": "Cocokkan kembali identitas nasabah di KTP, kontrak, dan rekening bank, lalu koordinasikan perbaikan data/dokumen pendukung."
+        "Tindakan Korektif / Solusi Sales": "Cocokkan kembali identitas nasabah di KTP, kontrak, dan rekening bank, lalu koordinasikan perbaikan data/dokumen pendukung."
     }
 ]
 
@@ -324,11 +368,11 @@ def build_wa_item_message(row):
     ]
     return "\n".join(lines)
 
-# Pesan WA Polos (Tanpa Emotikon) - Reject Rekap per SO
-def build_wa_rekap_message(df_rekap, nama_so="SO"):
+# Pesan WA Polos (Tanpa Emotikon) - Reject Rekap per Sales
+def build_wa_rekap_message(df_rekap, nama_sales="Sales"):
     if df_rekap.empty:
         return ""
-    sapaan = f"Halo Kak {nama_so}," if nama_so and nama_so != "SEMUA SALES" else "Halo Tim Sales Officer,"
+    sapaan = f"Halo Kak {nama_sales}," if nama_sales and nama_sales != "SEMUA SALES" else "Halo Tim Sales,"
     lines = [
         sapaan,
         "Berikut daftar customer reject yang perlu segera di follow up:",
@@ -344,9 +388,9 @@ def build_wa_rekap_message(df_rekap, nama_so="SO"):
         solusi = clean_text(row.get("Solusi", ""), "-")
         sales_item = clean_text(row.get("Sales", ""), "-")
 
-        baris_so = f"\n   SO: {sales_item}" if nama_so == "SEMUA SALES" else ""
+        baris_sales = f"\n   Sales: {sales_item}" if nama_sales == "SEMUA SALES" else ""
         lines.append(
-            f"{idx}. *{cust}* ({nokon}){baris_so}\n"
+            f"{idx}. *{cust}* ({nokon}){baris_sales}\n"
             f"   Cabang/Area: {cabang_area}\n"
             f"   Bank: {bank}\n"
             f"   Aging/Tanggal: {aging_tgl}\n"
@@ -372,14 +416,14 @@ def build_wa_bni_item_message(row):
         "- Bank: BNI",
         "- Status: D (Pengajuan ke Bank)",
         f"- Aging/Tanggal: {aging_tgl}",
-        "- Arahan: Wajib mengajukan dan mengaktifkan ACC ONE sesuai panduan SO.",
+        "- Arahan: Wajib mengajukan dan mengaktifkan ACC ONE sesuai arahan Sales.",
     ]
     return "\n".join(lines)
 
-def build_wa_bni_rekap_message(df_bni, nama_so="SO"):
+def build_wa_bni_rekap_message(df_bni, nama_sales="Sales"):
     if df_bni.empty:
         return ""
-    sapaan = f"Halo Kak {nama_so}," if nama_so and nama_so != "SEMUA SALES" else "Halo Tim Sales Officer,"
+    sapaan = f"Halo Kak {nama_sales}," if nama_sales and nama_sales != "SEMUA SALES" else "Halo Tim Sales,"
     lines = [
         sapaan,
         "Berikut daftar nasabah BNI status D (Pengajuan ke Bank) yang wajib diarahkan untuk pengaktifan ACC ONE:",
@@ -392,13 +436,13 @@ def build_wa_bni_rekap_message(df_bni, nama_so="SO"):
         aging_tgl = extract_aging_tanggal(row)
         sales_item = clean_text(row.get("Sales", ""), "-")
 
-        baris_so = f"\n   SO: {sales_item}" if nama_so == "SEMUA SALES" else ""
+        baris_sales = f"\n   Sales: {sales_item}" if nama_sales == "SEMUA SALES" else ""
         lines.append(
-            f"{idx}. *{cust}* ({nokon}){baris_so}\n"
+            f"{idx}. *{cust}* ({nokon}){baris_sales}\n"
             f"   Cabang/Area: {cabang_area}\n"
             f"   Bank: BNI | Status: D (Pengajuan ke Bank)\n"
             f"   Aging/Tanggal: {aging_tgl}\n"
-            f"   Arahan: Pengaktifan ACC ONE oleh nasabah dengan pendampingan/arahan SO."
+            f"   Arahan: Pengaktifan ACC ONE oleh nasabah dengan arahan Sales."
         )
         lines.append("")
     return "\n".join(lines).strip()
@@ -436,6 +480,9 @@ def load_data_sheets():
 
 df_tracking, is_live = load_data_sheets()
 
+if "bni_contacted_keys" not in st.session_state:
+    st.session_state.bni_contacted_keys = set()
+
 # Sidebar Navigasi Korporat
 st.sidebar.title("AUTOTEAM")
 st.sidebar.caption("Autodebet Team Achievement & Monitoring")
@@ -446,18 +493,59 @@ st.sidebar.markdown("**Menu Utama:**")
 menu_pilihan = st.sidebar.radio(
     "Navigasi",
     [
-        "🎯 Performance Hub",
-        "📊 Cust Status Tracking",
-        "🏛️ BNI ACC ONE Tracking",
-        "⚠️ Sales Tracking Reject",
-        "📘 Reject Guide",
-        "🔧 Pengaturan & Database"
+        "Home Dashboard",
+        "Status Customer",
+        "BNI Autodebet Tracking",
+        "Reject Tracking",
+        "Reject Guide",
+        "Settings"
     ],
     label_visibility="collapsed"
 )
 
 st.sidebar.markdown("---")
 st.sidebar.info("ACC Cabang Makassar — Kolaborasi & monitoring performa autodebet tim lapangan.")
+
+def build_sales_leaderboard(df):
+    if df.empty:
+        return pd.DataFrame(), pd.DataFrame()
+
+    rows = []
+    for sales_name, grp in df.groupby("Sales"):
+        s_label = sales_name.strip() if str(sales_name).strip() != "" else "(Tanpa Nama Sales)"
+        tot = len(grp)
+        app = len(grp[grp["Status_Code"] == "A"])
+        rej = len(grp[grp["Status_Code"] == "R"])
+        pct = (app / tot * 100.0) if tot > 0 else 0.0
+        rows.append({
+            "Sales": s_label,
+            "Total Data": tot,
+            "Approved (A)": app,
+            "Rejected (R)": rej,
+            "% Autodebet": round(pct, 1),
+        })
+
+    lb_df = pd.DataFrame(rows)
+    if lb_df.empty:
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Top 5: seluruh Sales yang punya data, % Autodebet tertinggi & Rejected (R) paling sedikit
+    top5 = lb_df.sort_values(
+        by=["% Autodebet", "Rejected (R)", "Approved (A)", "Total Data"],
+        ascending=[False, True, False, False]
+    ).head(5).copy()
+    top5.insert(0, "Rank", range(1, len(top5) + 1))
+    top5["% Autodebet"] = top5["% Autodebet"].map(lambda x: f"{x:.1f}%")
+
+    # Bottom 5: Sales dengan Rejected (R) terbanyak
+    bottom5 = lb_df.sort_values(
+        by=["Rejected (R)", "% Autodebet", "Total Data"],
+        ascending=[False, True, False]
+    ).head(5).copy()
+    bottom5.insert(0, "Rank", range(1, len(bottom5) + 1))
+    bottom5["% Autodebet"] = bottom5["% Autodebet"].map(lambda x: f"{x:.1f}%")
+
+    return top5, bottom5
 
 def main():
     total_data = len(df_tracking)
@@ -467,8 +555,8 @@ def main():
     total_rejected = len(df_tracking[df_tracking["Status_Code"] == "R"]) if not df_tracking.empty else 0
     success_rate_cabang = (total_approved / total_data * 100) if total_data > 0 else 0.0
 
-    if menu_pilihan == "🎯 Performance Hub":
-        st.title("⚡ AUTOTEAM — Performance Hub")
+    if menu_pilihan == "Home Dashboard":
+        st.title("⚡ AUTOTEAM — Home Dashboard")
         st.markdown("**Autodebet Team Achievement & Monitoring — ACC Cabang Makassar**")
         st.markdown('<div class="tagline-pill">Monitor. Improve. Activate.</div>', unsafe_allow_html=True)
         
@@ -476,48 +564,42 @@ def main():
         with col1:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking</span>
-                    <h2 style="color: #3b82f6; margin: 5px 0;">{total_data}</h2>
-                    <small style="color: #10b981;">Aktif: {total_aktif} | Non-Aktif (C/B): {total_data - total_aktif}</small>
+                    <div class="metric-label">Total Data Tracking</div>
+                    <h2 class="metric-value">{total_data}</h2>
+                    <div class="metric-sub">Aktif: {total_aktif} | Non-Aktif (C/B): {total_data - total_aktif}</div>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Rejected (R)</span>
-                    <h2 style="color: #ef4444; margin: 5px 0;">{total_rejected}</h2>
-                    <small style="color: #f59e0b;">Status Aktif Perlu Tindak Lanjut</small>
+                    <div class="metric-label">Total Rejected (R)</div>
+                    <h2 class="metric-value">{total_rejected}</h2>
+                    <div class="metric-sub">Status Aktif Perlu Tindak Lanjut</div>
                 </div>
             """, unsafe_allow_html=True)
         with col3:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Success Rate (Approved / A)</span>
-                    <h2 style="color: #10b981; margin: 5px 0;">{success_rate_cabang:.1f}%</h2>
-                    <small style="color: #10b981;">{total_approved} Approved dari {total_data} Data</small>
+                    <div class="metric-label">Success Rate (Approved / A)</div>
+                    <h2 class="metric-value">{success_rate_cabang:.1f}%</h2>
+                    <div class="metric-sub">{total_approved} Approved dari {total_data} Data</div>
                 </div>
             """, unsafe_allow_html=True)
         with col4:
             st.markdown("""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Server Status</span>
-                    <h2 style="color: #a855f7; margin: 5px 0;">Online</h2>
-                    <small style="color: #10b981;">AUTOTEAM Active</small>
+                    <div class="metric-label">Server Status</div>
+                    <h2 class="metric-value">Online</h2>
+                    <div class="metric-sub">AUTOTEAM Active</div>
                 </div>
             """, unsafe_allow_html=True)
             
         st.markdown("---")
         st.subheader("Statistik Volume & Performa per Bank (Data Cabang Makassar)")
         
-        bank_configs = [
-            ("BRI", "#3b82f6"),
-            ("MANDIRI", "#f59e0b"),
-            ("BCA", "#3b82f6"),
-            ("BNI", "#f97316"),
-            ("PERMATA", "#10b981"),
-        ]
+        bank_configs = ["BRI", "MANDIRI", "BCA", "BNI", "PERMATA"]
         bank_cols = st.columns(5)
-        for idx, (bank_name, title_color) in enumerate(bank_configs):
+        for idx, bank_name in enumerate(bank_configs):
             sub_b = df_tracking[df_tracking["Bank"] == bank_name]
             vol_b = len(sub_b)
             app_b = len(sub_b[sub_b["Status_Code"] == "A"])
@@ -526,28 +608,45 @@ def main():
             with bank_cols[idx]:
                 st.markdown(
                     f'<div class="bank-card">'
-                    f'<b style="color: {title_color}; font-size: 16px;">{bank_name}</b>'
-                    f'<h3 style="margin: 5px 0; color: #f3f4f6;">{rate_b:.1f}%</h3>'
-                    f'<span style="color: #9ca3af; font-size: 12px;">Total: <b>{vol_b}</b> Nasabah ({app_b} Approved)</span><br>'
-                    f'<small style="color: #10b981;">{badge_label}</small>'
+                    f'<div class="bank-title">{bank_name}</div>'
+                    f'<h3 class="bank-rate">{rate_b:.1f}%</h3>'
+                    f'<div class="bank-sub">Total: <b>{vol_b}</b> Nasabah ({app_b} Approved)</div>'
+                    f'<small class="bank-badge">{badge_label}</small>'
                     f'</div>',
                     unsafe_allow_html=True
                 )
+
+        st.markdown("---")
+        st.subheader("Sales Leaderboard")
+        top5_df, bottom5_df = build_sales_leaderboard(df_tracking)
+        lb_col1, lb_col2 = st.columns(2)
+        with lb_col1:
+            st.markdown("**Top 5 Sales — Persentase Autodebet Tertinggi & Reject Paling Sedikit**")
+            if not top5_df.empty:
+                st.dataframe(top5_df, use_container_width=True, hide_index=True)
+            else:
+                st.info("Belum ada data Sales.")
+        with lb_col2:
+            st.markdown("**Bottom 5 Sales — Rejected (R) Terbanyak**")
+            if not bottom5_df.empty:
+                st.dataframe(bottom5_df, use_container_width=True, hide_index=True)
+            else:
+                st.info("Belum ada data Sales.")
 
         st.markdown("---")
         st.subheader("Master Data Nasabah & Status Tracking (Live from Google Sheets)")
         kolom_tampil = [c for c in ["NOKON", "NAMA_CUST", "CABANG", "NAME_SO", "BANK_AUTODEBET", "STATUS PENDAFTARAN", "Status", "Keaktifan", "REASON REJECT"] if c in df_tracking.columns]
         st.dataframe(df_tracking[kolom_tampil] if kolom_tampil else df_tracking, use_container_width=True, hide_index=True)
 
-    elif menu_pilihan == "📊 Cust Status Tracking":
-        st.title("⚡ AUTOTEAM — Cust Status Tracking")
-        st.markdown("Pemantauan menyeluruh progress pengajuan seluruh nasabah dan kontribusi performa setiap Sales Officer.")
+    elif menu_pilihan == "Status Customer":
+        st.title("⚡ AUTOTEAM — Status Customer")
+        st.markdown("Pemantauan menyeluruh progress pengajuan seluruh nasabah dan kontribusi performa setiap Sales.")
 
         c_f1, c_f2, c_f3, c_f4, c_f5 = st.columns([1.8, 1.3, 1.1, 1.1, 1.5])
         with c_f1:
-            so_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
-            opsi_so = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SO_MAKASSAR + so_di_data))
-            pilih_so_all = st.selectbox("Filter Sales Officer:", opsi_so, key="so_all_select")
+            sales_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
+            opsi_sales = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SALES_MAKASSAR + sales_di_data))
+            pilih_sales_all = st.selectbox("Filter Sales:", opsi_sales, key="sales_all_select")
         with c_f2:
             opsi_status = [
                 "SEMUA STATUS",
@@ -571,8 +670,8 @@ def main():
             cari_cust_all = st.text_input("Cari Customer / NOKON:", placeholder="Ketik nama atau no. kontrak...", key="search_all_input")
 
         df_all_view = df_tracking.copy()
-        if pilih_so_all != "SEMUA SALES":
-            df_all_view = df_all_view[df_all_view["Sales"].str.upper() == pilih_so_all.upper()]
+        if pilih_sales_all != "SEMUA SALES":
+            df_all_view = df_all_view[df_all_view["Sales"].str.upper() == pilih_sales_all.upper()]
         if pilih_keaktifan != "SEMUA":
             df_all_view = df_all_view[df_all_view["Keaktifan"] == pilih_keaktifan]
         if pilih_bank != "SEMUA BANK":
@@ -610,11 +709,11 @@ def main():
         k5.metric("Rejected (R)", cnt_rej)
 
         st.markdown("---")
-        st.subheader("Rekap Progress per Sales Officer")
+        st.subheader("Rekap Progress per Sales")
         if not df_all_view.empty:
             rekap_rows = []
-            for so_name, grp in df_all_view.groupby("Sales"):
-                so_label = so_name if so_name.strip() != "" else "(Tanpa Nama SO)"
+            for sales_name, grp in df_all_view.groupby("Sales"):
+                s_label = sales_name if sales_name.strip() != "" else "(Tanpa Nama Sales)"
                 tot_s = len(grp)
                 app_s = len(grp[grp["Status_Code"] == "A"])
                 akt_s = len(grp[grp["Keaktifan"] == "Aktif"])
@@ -622,7 +721,7 @@ def main():
                 rej_s = len(grp[grp["Status_Code"] == "R"])
                 pct_app = (app_s / tot_s * 100) if tot_s > 0 else 0.0
                 rekap_rows.append({
-                    "Sales Officer": so_label,
+                    "Sales": s_label,
                     "Total Data": tot_s,
                     "Approved (A)": app_s,
                     "Aktif": akt_s,
@@ -630,10 +729,10 @@ def main():
                     "Rejected (R)": rej_s,
                     "% Approved": f"{pct_app:.1f}%"
                 })
-            df_rekap_so = pd.DataFrame(rekap_rows).sort_values(by=["Total Data", "Approved (A)"], ascending=False)
-            st.dataframe(df_rekap_so, use_container_width=True, hide_index=True)
+            df_rekap_sales = pd.DataFrame(rekap_rows).sort_values(by=["Total Data", "Approved (A)"], ascending=False)
+            st.dataframe(df_rekap_sales, use_container_width=True, hide_index=True)
         else:
-            st.info("Belum ada data rekap SO untuk filter saat ini.")
+            st.info("Belum ada data rekap Sales untuk filter saat ini.")
 
         st.markdown("---")
         st.subheader(f"Detail Progress Seluruh Nasabah ({len(df_all_view)} Data)")
@@ -651,9 +750,9 @@ def main():
         else:
             st.warning("Tidak ada data nasabah yang cocok dengan filter yang dipilih.")
 
-    elif menu_pilihan == "🏛️ BNI ACC ONE Tracking":
-        st.title("⚡ AUTOTEAM — BNI ACC ONE Tracking")
-        st.markdown("Khusus pemantauan nasabah **BNI** berstatus **D (Pengajuan ke Bank)** yang wajib diarahkan oleh **Sales Officer** untuk pengaktifan **ACC ONE**.")
+    elif menu_pilihan == "BNI Autodebet Tracking":
+        st.title("⚡ AUTOTEAM — BNI Autodebet Tracking")
+        st.markdown("Pemantauan nasabah **BNI** berstatus **D (Pengajuan ke Bank)** yang diarahkan oleh **Sales** untuk pengaktifan **ACC ONE**.")
 
         df_bni_d = df_tracking[
             (df_tracking["Bank"] == "BNI") & (df_tracking["Status_Code"] == "D")
@@ -661,14 +760,14 @@ def main():
 
         f_b1, f_b2 = st.columns([2, 1.5])
         with f_b1:
-            so_bni_list = sorted([s for s in df_bni_d["Sales"].unique() if s not in ["", "-"]])
-            opsi_so_bni = ["SEMUA SALES"] + list(dict.fromkeys([s for s in DAFTAR_SO_MAKASSAR if s in so_bni_list] + so_bni_list))
-            pilih_so_bni = st.selectbox("Pilih Nama Sales Officer (BNI Status D):", opsi_so_bni, key="bni_so_select")
+            sales_bni_list = sorted([s for s in df_bni_d["Sales"].unique() if s not in ["", "-"]])
+            opsi_sales_bni = ["SEMUA SALES"] + list(dict.fromkeys([s for s in DAFTAR_SALES_MAKASSAR if s in sales_bni_list] + sales_bni_list))
+            pilih_sales_bni = st.selectbox("Pilih Nama Sales (BNI Status D):", opsi_sales_bni, key="bni_sales_select")
         with f_b2:
             cari_bni = st.text_input("Cari Customer / NOKON:", placeholder="Ketik nama atau no. kontrak...", key="bni_search_input")
 
-        if pilih_so_bni != "SEMUA SALES":
-            df_bni_d = df_bni_d[df_bni_d["Sales"].str.upper() == pilih_so_bni.upper()]
+        if pilih_sales_bni != "SEMUA SALES":
+            df_bni_d = df_bni_d[df_bni_d["Sales"].str.upper() == pilih_sales_bni.upper()]
         if cari_bni:
             m_n = df_bni_d["Customer"].astype(str).str.contains(cari_bni, case=False, na=False)
             m_i = df_bni_d["ID"].astype(str).str.contains(cari_bni, case=False, na=False)
@@ -676,21 +775,24 @@ def main():
 
         b_k1, b_k2, b_k3 = st.columns(3)
         b_k1.metric("Nasabah BNI Status D", len(df_bni_d))
-        b_k2.metric("Jumlah SO Terkait", df_bni_d["Sales"].nunique() if not df_bni_d.empty else 0)
-        b_k3.metric("Kewajiban Tindak Lanjut", "Aktivasi ACC ONE")
+        b_k2.metric("Jumlah Sales Terkait", df_bni_d["Sales"].nunique() if not df_bni_d.empty else 0)
+        b_k3.metric("Sudah Dihubungi (ACC ONE)", sum(
+            1 for idx, r in df_bni_d.iterrows()
+            if f"{clean_text(r.get('ID', ''))}_{clean_text(r.get('Customer', ''))}_{idx}" in st.session_state.bni_contacted_keys
+        ))
 
         st.markdown("---")
         if df_bni_d.empty:
             st.info("Tidak ada nasabah BNI berstatus D (Pengajuan ke Bank) untuk filter saat ini.")
         else:
-            if pilih_so_bni != "SEMUA SALES" and len(df_bni_d) > 1:
-                pesan_bni_rekap = build_wa_bni_rekap_message(df_bni_d, pilih_so_bni)
+            if pilih_sales_bni != "SEMUA SALES" and len(df_bni_d) > 1:
+                pesan_bni_rekap = build_wa_bni_rekap_message(df_bni_d, pilih_sales_bni)
                 url_bni_rekap = f"https://wa.me/?text={urllib.parse.quote(pesan_bni_rekap)}"
                 with st.container():
                     st.markdown(f"""
                         <div class="rekap-box">
-                            <strong style="color:#ffffff; font-size:16px;">Rekap Sekaligus Arahan ACC ONE untuk {pilih_so_bni} ({len(df_bni_d)} Nasabah)</strong><br>
-                            <small style="color:#9ca3af;">Menggabungkan seluruh nasabah BNI status D milik {pilih_so_bni} ke dalam satu pesan WA polos untuk arahan pengaktifan ACC ONE.</small>
+                            <strong style="color:#ffffff; font-size:16px;">Rekap Sekaligus Arahan ACC ONE untuk {pilih_sales_bni} ({len(df_bni_d)} Nasabah)</strong><br>
+                            <small style="color:#9ca3af;">Menggabungkan seluruh nasabah BNI status D milik {pilih_sales_bni} ke dalam satu pesan WA polos untuk arahan pengaktifan ACC ONE.</small>
                         </div>
                     """, unsafe_allow_html=True)
                     col_br1, col_br2 = st.columns([1.4, 2.6])
@@ -704,34 +806,46 @@ def main():
                             st.text_area("Teks Rekap BNI ACC ONE", value=pesan_bni_rekap, height=200, label_visibility="collapsed")
                 st.markdown("---")
 
-            for _, row in df_bni_d.iterrows():
+            for idx, row in df_bni_d.iterrows():
                 sales_nama = clean_text(row.get("Sales", ""), "-")
                 cabang_area = extract_cabang_area(row)
                 aging_tgl = extract_aging_tanggal(row)
+                item_key = f"{clean_text(row.get('ID', ''))}_{clean_text(row.get('Customer', ''))}_{idx}"
+                is_checked = item_key in st.session_state.bni_contacted_keys
 
-                df_so_bni = df_bni_d[df_bni_d["Sales"] == row.get("Sales", "")]
-                jml_so_bni = len(df_so_bni)
+                df_sales_bni = df_bni_d[df_bni_d["Sales"] == row.get("Sales", "")]
+                jml_sales_bni = len(df_sales_bni)
 
                 wa_bni_one = build_wa_bni_item_message(row)
                 url_bni_one = f"https://wa.me/?text={urllib.parse.quote(wa_bni_one)}"
 
-                wa_bni_grp = build_wa_bni_rekap_message(df_so_bni, sales_nama)
+                wa_bni_grp = build_wa_bni_rekap_message(df_sales_bni, sales_nama)
                 url_bni_grp = f"https://wa.me/?text={urllib.parse.quote(wa_bni_grp)}"
 
                 with st.container():
-                    st.markdown(f"""
-                        <div class="bni-box">
-                            <strong>{clean_text(row.get('Customer', ''))}</strong> (No. Kontrak: {clean_text(row.get('ID', ''))})<br>
-                            <small>Sales Officer: <b>{sales_nama}</b> &nbsp;|&nbsp; Bank: <b>BNI</b> &nbsp;|&nbsp; Status: <b>D — Pengajuan ke Bank</b> &nbsp;|&nbsp; Total BNI (D) SO ini: <b>{jml_so_bni} Nasabah</b></small><br>
-                            <small>Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; Aging/Tanggal: <b>{aging_tgl}</b></small>
-                            <div class="bni-action-box">
-                                <span>Arahan Pengaktifan ACC ONE:</span><br>
-                                Nasabah wajib mengajukan dan mengaktifkan ACC ONE dengan arahan dari Sales Officer.
+                    card_c, status_c = st.columns([5.2, 1.3])
+                    with card_c:
+                        st.markdown(f"""
+                            <div class="bni-box">
+                                <strong>{clean_text(row.get('Customer', ''))}</strong> (No. Kontrak: {clean_text(row.get('ID', ''))})<br>
+                                <small>Sales: <b>{sales_nama}</b> &nbsp;|&nbsp; Bank: <b>BNI</b> &nbsp;|&nbsp; Status: <b>D — Pengajuan ke Bank</b> &nbsp;|&nbsp; Total BNI (D) Sales ini: <b>{jml_sales_bni} Nasabah</b></small><br>
+                                <small>Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; Aging/Tanggal: <b>{aging_tgl}</b></small>
                             </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+                    with status_c:
+                        checked_val = st.checkbox(
+                            "Sudah dihubungi (ACC ONE)",
+                            value=is_checked,
+                            key=f"chk_bni_{item_key}"
+                        )
+                        if checked_val:
+                            st.session_state.bni_contacted_keys.add(item_key)
+                            st.markdown('<div class="ceklis-badge">✓ Sudah Dihubungi</div>', unsafe_allow_html=True)
+                        else:
+                            st.session_state.bni_contacted_keys.discard(item_key)
+                            st.markdown('<div class="belum-ceklis-badge">Belum Dihubungi</div>', unsafe_allow_html=True)
 
-                    if jml_so_bni > 1:
+                    if jml_sales_bni > 1:
                         bc1, bc2 = st.columns([1.2, 2.8])
                         with bc1:
                             st.markdown(
@@ -740,7 +854,7 @@ def main():
                             )
                         with bc2:
                             st.markdown(
-                                f'<a href="{url_bni_grp}" target="_blank"><button style="background-color:#1d4ed8; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">Rekap Semua ({jml_so_bni} Nasabah {sales_nama})</button></a>',
+                                f'<a href="{url_bni_grp}" target="_blank"><button style="background-color:#0044b3; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">Rekap Semua ({jml_sales_bni} Nasabah {sales_nama})</button></a>',
                                 unsafe_allow_html=True
                             )
                     else:
@@ -750,15 +864,15 @@ def main():
                         )
                     st.markdown("---")
 
-    elif menu_pilihan == "⚠️ Sales Tracking Reject":
-        st.title("⚡ AUTOTEAM — Sales Tracking Reject")
+    elif menu_pilihan == "Reject Tracking":
+        st.title("⚡ AUTOTEAM — Reject Tracking")
         st.markdown("Pusat pemantauan dan pengelolaan penolakan (Rejected / R) penagihan autodebet nasabah.")
         
         col_f1, col_f2 = st.columns([2, 1])
         with col_f1:
-            so_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
-            daftar_filter_sales = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SO_MAKASSAR + so_di_data))
-            pilih_sales = st.selectbox("Pilih Nama Sales Officer:", daftar_filter_sales)
+            sales_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
+            daftar_filter_sales = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SALES_MAKASSAR + sales_di_data))
+            pilih_sales = st.selectbox("Pilih Nama Sales:", daftar_filter_sales)
         with col_f2:
             search_box = st.text_input("Cari Nama / No. Kontrak:", placeholder="Ketik nama customer atau NOKON...")
 
@@ -781,8 +895,8 @@ def main():
             st.warning("Tidak ada data rejected yang ditemukan untuk filter tersebut.")
         else:
             if pilih_sales != "SEMUA SALES" and len(df_view) > 1:
-                pesan_rekap_so = build_wa_rekap_message(df_view, pilih_sales)
-                url_rekap_so = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap_so)}"
+                pesan_rekap_sales = build_wa_rekap_message(df_view, pilih_sales)
+                url_rekap_sales = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap_sales)}"
                 with st.container():
                     st.markdown(f"""
                         <div class="rekap-box">
@@ -793,12 +907,12 @@ def main():
                     col_r1, col_r2 = st.columns([1.4, 2.6])
                     with col_r1:
                         st.markdown(
-                            f'<a href="{url_rekap_so}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer;">Kirim Rekap Sekaligus ({len(df_view)} Nasabah)</button></a>',
+                            f'<a href="{url_rekap_sales}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer;">Kirim Rekap Sekaligus ({len(df_view)} Nasabah)</button></a>',
                             unsafe_allow_html=True
                         )
                     with col_r2:
-                        with st.expander("Lihat / Salin Teks Rekap WA SO"):
-                            st.text_area("Teks Rekap WA SO", value=pesan_rekap_so, height=220, label_visibility="collapsed")
+                        with st.expander("Lihat / Salin Teks Rekap WA Sales"):
+                            st.text_area("Teks Rekap WA Sales", value=pesan_rekap_sales, height=220, label_visibility="collapsed")
                 st.markdown("---")
 
             for _, row in df_view.iterrows():
@@ -810,16 +924,16 @@ def main():
                 wa_item_msg = build_wa_item_message(row)
                 wa_item_url = f"https://wa.me/?text={urllib.parse.quote(wa_item_msg)}"
 
-                df_so_ini = df_view[df_view["Sales"] == row.get("Sales", "")]
-                jml_so_ini = len(df_so_ini)
-                wa_so_group_msg = build_wa_rekap_message(df_so_ini, sales_nama)
-                wa_so_group_url = f"https://wa.me/?text={urllib.parse.quote(wa_so_group_msg)}"
+                df_sales_ini = df_view[df_view["Sales"] == row.get("Sales", "")]
+                jml_sales_ini = len(df_sales_ini)
+                wa_sales_group_msg = build_wa_rekap_message(df_sales_ini, sales_nama)
+                wa_sales_group_url = f"https://wa.me/?text={urllib.parse.quote(wa_sales_group_msg)}"
 
                 with st.container():
                     st.markdown(f"""
                         <div class="reject-box">
                             <strong>{clean_text(row.get('Customer', ''))}</strong> ({clean_text(row.get('Bank', ''))} - No. Kontrak: {clean_text(row.get('ID', ''))})<br>
-                            <small>Sales Officer: <b>{sales_nama}</b> &nbsp;|&nbsp; Status: <b>{clean_text(row.get('Status', 'Rejected'))} ({clean_text(row.get('Status_Code', 'R'))})</b> &nbsp;|&nbsp; Total Reject SO ini: <b>{jml_so_ini} Nasabah</b></small><br>
+                            <small>Sales: <b>{sales_nama}</b> &nbsp;|&nbsp; Status: <b>{clean_text(row.get('Status', 'Rejected'))} ({clean_text(row.get('Status_Code', 'R'))})</b> &nbsp;|&nbsp; Total Reject Sales ini: <b>{jml_sales_ini} Nasabah</b></small><br>
                             <small>Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; Aging/Tanggal: <b>{aging_tgl}</b></small><br>
                             <span class="reject-reason">Alasan Reject: {alasan}</span>
                             <div class="solution-box">
@@ -829,7 +943,7 @@ def main():
                         </div>
                     """, unsafe_allow_html=True)
 
-                    if jml_so_ini > 1:
+                    if jml_sales_ini > 1:
                         b_col1, b_col2 = st.columns([1.2, 2.8])
                         with b_col1:
                             st.markdown(
@@ -838,19 +952,19 @@ def main():
                             )
                         with b_col2:
                             st.markdown(
-                                f'<a href="{wa_so_group_url}" target="_blank"><button style="background-color:#1d4ed8; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">Rekap Semua ({jml_so_ini} Nasabah {sales_nama})</button></a>',
+                                f'<a href="{wa_sales_group_url}" target="_blank"><button style="background-color:#0044b3; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">Rekap Semua ({jml_sales_ini} Nasabah {sales_nama})</button></a>',
                                 unsafe_allow_html=True
                             )
                     else:
                         st.markdown(
-                            f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">Kirim WA ke SO (1 Nasabah)</button></a>',
+                            f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">Kirim WA ke Sales (1 Nasabah)</button></a>',
                             unsafe_allow_html=True
                         )
                     st.markdown("---")
 
-    elif menu_pilihan == "📘 Reject Guide":
-        st.header("⚡ AUTOTEAM — Panduan Penanganan Reject & Solusi SO")
-        st.markdown("Acuan standar operasional lengkap untuk penanganan penolakan autodebet dan tindakan korektif Sales Officer di ACC Cabang Makassar.")
+    elif menu_pilihan == "Reject Guide":
+        st.header("⚡ AUTOTEAM — Panduan Penanganan Reject & Solusi Sales")
+        st.markdown("Acuan standar operasional lengkap untuk penanganan penolakan autodebet dan tindakan korektif Sales di ACC Cabang Makassar.")
         
         search_guide = st.text_input("Cari Kata Kunci Panduan / Solusi:", placeholder="Contoh: tanda tangan, rekening, telepon, brimo, saldo, dormant...")
         
@@ -859,14 +973,14 @@ def main():
             mask_g = (
                 df_g["Alasan Reject"].str.contains(search_guide, case=False, na=False) |
                 df_g["Keterangan"].str.contains(search_guide, case=False, na=False) |
-                df_g["Tindakan Korektif / Solusi SO"].str.contains(search_guide, case=False, na=False)
+                df_g["Tindakan Korektif / Solusi Sales"].str.contains(search_guide, case=False, na=False)
             )
             df_g = df_g[mask_g]
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
-    elif menu_pilihan == "🔧 Pengaturan & Database":
-        st.subheader("🔧 Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.4")
+    elif menu_pilihan == "Settings":
+        st.subheader("Pengaturan Sistem & Database Google Sheets")
+        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.5")
         if is_live:
             st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (DB_AutoMonitor_Makassar — {total_data} Data)")
         else:
@@ -874,8 +988,8 @@ def main():
         
         st.markdown("---")
         st.subheader("Akses Langsung Google Sheets")
-        st.markdown("Anda dapat langsung mengelola, menambah, atau menghapus data Sales Officer melalui tautan berikut:")
-        st.markdown('<a href="https://docs.google.com/spreadsheets/d/1eGeosnjBbMnAK0I0pbIcGtTBxlOYTN4eUgtz9X5CM2M/edit" target="_blank"><button style="background-color:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">Buka Google Sheets Utama</button></a>', unsafe_allow_html=True)
+        st.markdown("Anda dapat langsung mengelola, menambah, atau menghapus data Sales melalui tautan berikut:")
+        st.markdown('<a href="https://docs.google.com/spreadsheets/d/1eGeosnjBbMnAK0I0pbIcGtTBxlOYTN4eUgtz9X5CM2M/edit" target="_blank"><button style="background-color:#0044b3; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">Buka Google Sheets Utama</button></a>', unsafe_allow_html=True)
         
         st.markdown("---")
         st.subheader("Download Backup Data (Excel)")
