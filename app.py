@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
+import html
 import urllib.parse
 
 # Konfigurasi Halaman
@@ -11,39 +12,136 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Korporat Profesional & Nuansa Biru ACC
+# Custom CSS Korporat Profesional, Nuansa Biru ACC, Navigasi Berwarna & Animasi Halus
 st.markdown("""
     <style>
+    @keyframes floatTrophy {
+        0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.55)); }
+        50% { transform: translateY(-4px) scale(1.08); filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.9)); }
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 12px rgba(37, 99, 235, 0.35); }
+        50% { box-shadow: 0 0 22px rgba(56, 189, 248, 0.65); }
+    }
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .main {
-        background-color: #0e1117;
+        background-color: #0b1120;
     }
     footer {display: none !important; visibility: hidden !important;}
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .viewerBadge_container__1QSob {display: none !important;}
-    
+
+    /* Sidebar Lebih Berwarna, Elegan & Beranimasi */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #071330 0%, #0b1f4d 52%, #091738 100%);
+        border-right: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    section[data-testid="stSidebar"] .stRadio > div {
+        gap: 8px;
+    }
+    section[data-testid="stSidebar"] .stRadio label {
+        background: rgba(15, 35, 82, 0.72);
+        border: 1px solid rgba(96, 165, 250, 0.28);
+        border-left: 4px solid #38bdf8;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 4px;
+        transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        cursor: pointer;
+    }
+    section[data-testid="stSidebar"] .stRadio label:hover {
+        transform: translateX(5px);
+        background: linear-gradient(90deg, rgba(0, 85, 204, 0.85), rgba(14, 116, 144, 0.78));
+        border-color: #7dd3fc;
+        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.32);
+    }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(1) { border-left-color: #38bdf8; }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(2) { border-left-color: #34d399; }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(3) { border-left-color: #fbbf24; }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(4) { border-left-color: #f87171; }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(5) { border-left-color: #a78bfa; }
+    section[data-testid="stSidebar"] .stRadio label:nth-child(6) { border-left-color: #2dd4bf; }
+
+    section[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+        background: linear-gradient(90deg, #0044b3 0%, #0284c7 100%) !important;
+        border: 1px solid #bae6fd !important;
+        border-left: 5px solid #facc15 !important;
+        transform: translateX(6px);
+        animation: pulseGlow 2.8s infinite ease-in-out;
+    }
+    section[data-testid="stSidebar"] .stRadio label p {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }
+
+    /* Hero Banner Atas Agar Ramai & Hidup */
+    .hero-banner {
+        background: linear-gradient(120deg, #002366, #0044b3, #0369a1, #002b7f);
+        background-size: 250% 250%;
+        animation: gradientShift 9s ease infinite, fadeSlideUp 0.5s ease-out;
+        padding: 20px 24px;
+        border-radius: 14px;
+        border: 1px solid rgba(125, 211, 252, 0.45);
+        box-shadow: 0 8px 24px rgba(0, 35, 102, 0.45);
+        margin-bottom: 18px;
+    }
+    .hero-title {
+        color: #ffffff !important;
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: 0.4px;
+    }
+    .hero-sub {
+        color: #e0f2fe !important;
+        font-size: 14.5px;
+        margin-top: 4px;
+        margin-bottom: 10px;
+    }
+
     .tagline-pill {
         display: inline-block;
-        background: linear-gradient(90deg, #003399, #0055cc);
+        background: linear-gradient(90deg, #003399, #0284c7, #0055cc);
+        background-size: 200% 200%;
+        animation: gradientShift 6s ease infinite;
         color: #ffffff;
         padding: 4px 14px;
         border-radius: 999px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 700;
         letter-spacing: 0.6px;
-        margin-top: 4px;
-        margin-bottom: 10px;
-        border: 1px solid #38bdf8;
+        margin-top: 2px;
+        margin-bottom: 6px;
+        border: 1px solid #7dd3fc;
     }
+
+    /* Kartu KPI & Bank Biru ACC */
     .metric-card {
         background: linear-gradient(145deg, #002b7f 0%, #0044b3 100%);
         padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 35, 102, 0.45);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 35, 102, 0.45);
         border: 1px solid #3b82f6;
         text-align: center;
         margin-bottom: 10px;
         color: #ffffff !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        animation: fadeSlideUp 0.45s ease-out;
+    }
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.55);
     }
     .metric-label {
         color: #dbeafe !important;
@@ -63,11 +161,16 @@ st.markdown("""
         background: linear-gradient(160deg, #00266e 0%, #003d9e 100%);
         padding: 15px;
         border-radius: 10px;
-        box-shadow: 0 3px 8px rgba(0, 25, 80, 0.35);
+        box-shadow: 0 3px 10px rgba(0, 25, 80, 0.35);
         border: 1px solid #2563eb;
         text-align: center;
         color: #ffffff !important;
         margin-bottom: 8px;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+    .bank-card:hover {
+        transform: translateY(-3px);
+        border-color: #7dd3fc;
     }
     .bank-title {
         color: #93c5fd !important;
@@ -87,6 +190,113 @@ st.markdown("""
         color: #fef08a !important;
         font-weight: 600;
     }
+
+    /* Sales Leaderboard Styling (Top 5 Trophy Cards + Bottom 5 Seragam) */
+    .lb-panel {
+        background: linear-gradient(165deg, #0b1d45 0%, #102a63 100%);
+        border: 1px solid #2563eb;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 6px 18px rgba(0, 28, 85, 0.4);
+        animation: fadeSlideUp 0.55s ease-out;
+    }
+    .lb-panel-title {
+        color: #ffffff !important;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(147, 197, 253, 0.25);
+    }
+    .top-rank-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(90deg, rgba(0, 51, 153, 0.85), rgba(3, 105, 161, 0.65));
+        border: 1px solid rgba(125, 211, 252, 0.38);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .top-rank-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+    }
+    .top-rank-1 {
+        background: linear-gradient(90deg, rgba(161, 98, 7, 0.55), rgba(0, 68, 179, 0.9));
+        border: 1px solid #facc15;
+    }
+    .top-rank-2 {
+        background: linear-gradient(90deg, rgba(71, 85, 105, 0.6), rgba(0, 68, 179, 0.88));
+        border: 1px solid #e2e8f0;
+    }
+    .top-rank-3 {
+        background: linear-gradient(90deg, rgba(146, 64, 14, 0.55), rgba(0, 68, 179, 0.88));
+        border: 1px solid #f59e0b;
+    }
+    .trophy-anim {
+        display: inline-block;
+        font-size: 22px;
+        margin-right: 10px;
+        animation: floatTrophy 2.2s infinite ease-in-out;
+    }
+    .rank-name {
+        color: #ffffff !important;
+        font-weight: 700;
+        font-size: 14.5px;
+    }
+    .rank-meta {
+        color: #bae6fd !important;
+        font-size: 12px;
+    }
+    .rank-score-pill {
+        background-color: #002366;
+        color: #fef08a !important;
+        border: 1px solid #facc15;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    /* Tabel Bottom 5 Seragam dengan Tema Top 5 */
+    .lb-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        color: #f8fafc;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .lb-table thead tr {
+        background: linear-gradient(90deg, #003399, #0369a1);
+        color: #ffffff;
+        text-align: left;
+    }
+    .lb-table th, .lb-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(147, 197, 253, 0.2);
+    }
+    .lb-table tbody tr {
+        background-color: rgba(15, 35, 82, 0.68);
+        transition: background-color 0.2s ease;
+    }
+    .lb-table tbody tr:hover {
+        background-color: rgba(29, 78, 216, 0.55);
+    }
+    .rej-pill {
+        background-color: rgba(185, 28, 28, 0.85);
+        color: #fecaca;
+        border: 1px solid #f87171;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    /* Kartu Reject & BNI */
     .reject-box {
         background-color: #1f2937;
         padding: 20px;
@@ -483,22 +693,26 @@ df_tracking, is_live = load_data_sheets()
 if "bni_contacted_keys" not in st.session_state:
     st.session_state.bni_contacted_keys = set()
 
-# Sidebar Navigasi Korporat
-st.sidebar.title("AUTOTEAM")
-st.sidebar.caption("Autodebet Team Achievement & Monitoring")
-st.sidebar.markdown('<div class="tagline-pill">Monitor. Improve. Activate.</div>', unsafe_allow_html=True)
+# Sidebar Navigasi Korporat Berwarna & Beranimasi
+st.sidebar.markdown("""
+    <div style="padding: 6px 2px 2px 2px;">
+        <h2 style="color: #ffffff; margin: 0; font-weight: 800; letter-spacing: 0.5px;">⚡ AUTOTEAM</h2>
+        <p style="color: #93c5fd; font-size: 12.5px; margin: 2px 0 8px 0;">Autodebet Team Achievement & Monitoring</p>
+        <div class="tagline-pill">Monitor. Improve. Activate.</div>
+    </div>
+""", unsafe_allow_html=True)
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Menu Utama:**")
+st.sidebar.markdown("<span style='color:#bae6fd; font-weight:700; font-size:13px;'>MENU UTAMA</span>", unsafe_allow_html=True)
 
 menu_pilihan = st.sidebar.radio(
     "Navigasi",
     [
-        "Home Dashboard",
-        "Status Customer",
-        "BNI Autodebet Tracking",
-        "Reject Tracking",
-        "Reject Guide",
-        "Settings"
+        "🎯 Home Dashboard",
+        "📊 Status Customer",
+        "🏛️ BNI Autodebet Tracking",
+        "⚠️ Reject Tracking",
+        "📘 Reject Guide",
+        "🔧 Settings"
     ],
     label_visibility="collapsed"
 )
@@ -535,7 +749,6 @@ def build_sales_leaderboard(df):
         ascending=[False, True, False, False]
     ).head(5).copy()
     top5.insert(0, "Rank", range(1, len(top5) + 1))
-    top5["% Autodebet"] = top5["% Autodebet"].map(lambda x: f"{x:.1f}%")
 
     # Bottom 5: Sales dengan Rejected (R) terbanyak
     bottom5 = lb_df.sort_values(
@@ -543,9 +756,67 @@ def build_sales_leaderboard(df):
         ascending=[False, True, False]
     ).head(5).copy()
     bottom5.insert(0, "Rank", range(1, len(bottom5) + 1))
-    bottom5["% Autodebet"] = bottom5["% Autodebet"].map(lambda x: f"{x:.1f}%")
 
     return top5, bottom5
+
+def render_top5_trophy_cards(top5_df):
+    trophy_icons = {1: "🏆", 2: "🥈", 3: "🥉", 4: "🏅", 5: "🎖️"}
+    rank_classes = {1: "top-rank-1", 2: "top-rank-2", 3: "top-rank-3"}
+    html_parts = [
+        '<div class="lb-panel">',
+        '<div class="lb-panel-title">🏆 Top 5 Sales — Persentase Autodebet Tertinggi & Reject Paling Sedikit</div>'
+    ]
+    for _, r in top5_df.iterrows():
+        rk = int(r["Rank"])
+        t_icon = trophy_icons.get(rk, "🏆")
+        extra_cls = rank_classes.get(rk, "")
+        s_name = html.escape(str(r["Sales"]))
+        tot_d = int(r["Total Data"])
+        app_d = int(r["Approved (A)"])
+        rej_d = int(r["Rejected (R)"])
+        pct_v = float(r["% Autodebet"])
+        html_parts.append(
+            f'<div class="top-rank-card {extra_cls}">'
+            f'  <div style="display:flex; align-items:center;">'
+            f'    <span class="trophy-anim">{t_icon}</span>'
+            f'    <div>'
+            f'      <div class="rank-name">#{rk} &nbsp;{s_name}</div>'
+            f'      <div class="rank-meta">Approved: <b>{app_d}</b> / {tot_d} Data &nbsp;|&nbsp; Rejected: <b>{rej_d}</b></div>'
+            f'    </div>'
+            f'  </div>'
+            f'  <div class="rank-score-pill">{pct_v:.1f}%</div>'
+            f'</div>'
+        )
+    html_parts.append('</div>')
+    return "".join(html_parts)
+
+def render_bottom5_styled_table(bottom5_df):
+    html_parts = [
+        '<div class="lb-panel">',
+        '<div class="lb-panel-title">⚠️ Bottom 5 Sales — Rejected (R) Terbanyak</div>',
+        '<table class="lb-table">',
+        '<thead><tr><th>Rank</th><th>Nama Sales</th><th>Total</th><th>Approved</th><th>Rejected (R)</th><th>% Autodebet</th></tr></thead>',
+        '<tbody>'
+    ]
+    for _, r in bottom5_df.iterrows():
+        rk = int(r["Rank"])
+        s_name = html.escape(str(r["Sales"]))
+        tot_d = int(r["Total Data"])
+        app_d = int(r["Approved (A)"])
+        rej_d = int(r["Rejected (R)"])
+        pct_v = float(r["% Autodebet"])
+        html_parts.append(
+            f'<tr>'
+            f'  <td><b>#{rk}</b></td>'
+            f'  <td><b>{s_name}</b></td>'
+            f'  <td>{tot_d}</td>'
+            f'  <td>{app_d}</td>'
+            f'  <td><span class="rej-pill">{rej_d} Reject</span></td>'
+            f'  <td><b>{pct_v:.1f}%</b></td>'
+            f'</tr>'
+        )
+    html_parts.append('</tbody></table></div>')
+    return "".join(html_parts)
 
 def main():
     total_data = len(df_tracking)
@@ -555,10 +826,14 @@ def main():
     total_rejected = len(df_tracking[df_tracking["Status_Code"] == "R"]) if not df_tracking.empty else 0
     success_rate_cabang = (total_approved / total_data * 100) if total_data > 0 else 0.0
 
-    if menu_pilihan == "Home Dashboard":
-        st.title("⚡ AUTOTEAM — Home Dashboard")
-        st.markdown("**Autodebet Team Achievement & Monitoring — ACC Cabang Makassar**")
-        st.markdown('<div class="tagline-pill">Monitor. Improve. Activate.</div>', unsafe_allow_html=True)
+    if menu_pilihan == "🎯 Home Dashboard":
+        st.markdown("""
+            <div class="hero-banner">
+                <div class="hero-title">⚡ AUTOTEAM — Home Dashboard</div>
+                <div class="hero-sub">Autodebet Team Achievement & Monitoring — ACC Cabang Makassar</div>
+                <div class="tagline-pill">Monitor. Improve. Activate.</div>
+            </div>
+        """, unsafe_allow_html=True)
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -621,15 +896,13 @@ def main():
         top5_df, bottom5_df = build_sales_leaderboard(df_tracking)
         lb_col1, lb_col2 = st.columns(2)
         with lb_col1:
-            st.markdown("**Top 5 Sales — Persentase Autodebet Tertinggi & Reject Paling Sedikit**")
             if not top5_df.empty:
-                st.dataframe(top5_df, use_container_width=True, hide_index=True)
+                st.markdown(render_top5_trophy_cards(top5_df), unsafe_allow_html=True)
             else:
                 st.info("Belum ada data Sales.")
         with lb_col2:
-            st.markdown("**Bottom 5 Sales — Rejected (R) Terbanyak**")
             if not bottom5_df.empty:
-                st.dataframe(bottom5_df, use_container_width=True, hide_index=True)
+                st.markdown(render_bottom5_styled_table(bottom5_df), unsafe_allow_html=True)
             else:
                 st.info("Belum ada data Sales.")
 
@@ -638,7 +911,7 @@ def main():
         kolom_tampil = [c for c in ["NOKON", "NAMA_CUST", "CABANG", "NAME_SO", "BANK_AUTODEBET", "STATUS PENDAFTARAN", "Status", "Keaktifan", "REASON REJECT"] if c in df_tracking.columns]
         st.dataframe(df_tracking[kolom_tampil] if kolom_tampil else df_tracking, use_container_width=True, hide_index=True)
 
-    elif menu_pilihan == "Status Customer":
+    elif menu_pilihan == "📊 Status Customer":
         st.title("⚡ AUTOTEAM — Status Customer")
         st.markdown("Pemantauan menyeluruh progress pengajuan seluruh nasabah dan kontribusi performa setiap Sales.")
 
@@ -750,9 +1023,9 @@ def main():
         else:
             st.warning("Tidak ada data nasabah yang cocok dengan filter yang dipilih.")
 
-    elif menu_pilihan == "BNI Autodebet Tracking":
+    elif menu_pilihan == "🏛️ BNI Autodebet Tracking":
         st.title("⚡ AUTOTEAM — BNI Autodebet Tracking")
-        st.markdown("Pemantauan nasabah **BNI** berstatus **D (Pengajuan ke Bank)** yang diarahkan oleh **Sales** untuk pengaktifan **ACC ONE**.")
+        st.markdown("Pemantauan nasabah **BNI** berstatus **D (Pengajuan ke Bank)** yang diarahkan untuk pengaktifan **ACC ONE**.")
 
         df_bni_d = df_tracking[
             (df_tracking["Bank"] == "BNI") & (df_tracking["Status_Code"] == "D")
@@ -864,7 +1137,7 @@ def main():
                         )
                     st.markdown("---")
 
-    elif menu_pilihan == "Reject Tracking":
+    elif menu_pilihan == "⚠️ Reject Tracking":
         st.title("⚡ AUTOTEAM — Reject Tracking")
         st.markdown("Pusat pemantauan dan pengelolaan penolakan (Rejected / R) penagihan autodebet nasabah.")
         
@@ -962,7 +1235,7 @@ def main():
                         )
                     st.markdown("---")
 
-    elif menu_pilihan == "Reject Guide":
+    elif menu_pilihan == "📘 Reject Guide":
         st.header("⚡ AUTOTEAM — Panduan Penanganan Reject & Solusi Sales")
         st.markdown("Acuan standar operasional lengkap untuk penanganan penolakan autodebet dan tindakan korektif Sales di ACC Cabang Makassar.")
         
@@ -978,9 +1251,9 @@ def main():
             df_g = df_g[mask_g]
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
-    elif menu_pilihan == "Settings":
-        st.subheader("Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.5")
+    elif menu_pilihan == "🔧 Settings":
+        st.subheader("🔧 Pengaturan Sistem & Database Google Sheets")
+        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.6")
         if is_live:
             st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (DB_AutoMonitor_Makassar — {total_data} Data)")
         else:
