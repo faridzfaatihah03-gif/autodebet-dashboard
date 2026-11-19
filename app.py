@@ -59,7 +59,7 @@ st.markdown("""
         border-radius: 10px;
         border-left: 5px solid #ef4444;
         border: 1px solid #374151;
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         color: #f3f4f6 !important;
     }
     .reject-box strong {
@@ -68,7 +68,7 @@ st.markdown("""
     }
     .reject-box small {
         color: #9ca3af !important;
-        font-size: 14px;
+        font-size: 13.5px;
     }
     .reject-reason {
         color: #f87171 !important;
@@ -88,6 +88,15 @@ st.markdown("""
     .solution-box span {
         color: #34d399 !important;
         font-weight: bold;
+    }
+    .rekap-box {
+        background-color: #111827;
+        padding: 18px;
+        border-radius: 10px;
+        border: 1px solid #2563eb;
+        border-left: 5px solid #25d366;
+        margin-bottom: 18px;
+        color: #e5e7eb !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -111,7 +120,7 @@ DAFTAR_SO_MAKASSAR = [
 def get_solusi_reject(reason):
     r = str(reason).lower().strip()
     if "not correct" in r:
-        return "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon sesuai yang terdaftar di Bank / BRIMO."
+        return "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon yang diinput sesuai dengan nomor telepon yang terdaftar di Bank / BRIMO. Arahkan customer walk-in ke Bank untuk updation no Telp."
     elif "not found" in r:
         return "Arahkan Customer untuk melakukan registrasi / pembaruan data nomor HP di bank terkait."
     elif "tanda tangan" in r or "skpr" in r or "kartu atm" in r:
@@ -153,6 +162,93 @@ def map_status_label(code):
     }
     return mapping.get(c, "Belum Diproses" if c in ["", "NAN", "NONE"] else c)
 
+def clean_text(val, default="-"):
+    s = str(val).strip()
+    if s == "" or s.lower() in ["nan", "none", "nat", "-"]:
+        return default
+    return s
+
+def extract_cabang_area(row):
+    cabang = clean_text(row.get("CABANG", ""), "")
+    area_new = clean_text(row.get("AREA NEW", ""), "")
+    area = clean_text(row.get("AREA", ""), "")
+    area_gabung = area_new if area_new else area
+    if cabang and area_gabung and cabang.lower() != area_gabung.lower():
+        return f"{cabang} / {area_gabung}"
+    return cabang or area_gabung or "-"
+
+def extract_aging_tanggal(row):
+    aging = clean_text(row.get("Aging", ""), "")
+    aging_raw = clean_text(row.get("AGING_", ""), "")
+    tgl_ref = clean_text(row.get("2026-04-11", ""), "")
+    dt_golive = clean_text(row.get("DT_GOLIVE", ""), "")
+
+    bagian = []
+    if aging:
+        bagian.append(f"Aging {aging} hr")
+    elif aging_raw:
+        bagian.append(f"Aging {aging_raw}")
+
+    if tgl_ref:
+        bagian.append(f"Tgl {tgl_ref}")
+    elif dt_golive:
+        bagian.append(f"Golive {dt_golive}")
+
+    return " | ".join(bagian) if bagian else "-"
+
+def build_wa_item_message(row):
+    sales = clean_text(row.get("Sales", ""), "Kak")
+    cust = clean_text(row.get("Customer", ""), "-")
+    nokon = clean_text(row.get("ID", ""), "-")
+    bank = clean_text(row.get("Bank", ""), "-")
+    cabang_area = extract_cabang_area(row)
+    aging_tgl = extract_aging_tanggal(row)
+    alasan = clean_text(row.get("Alasan Reject", ""), "Alasan belum tercantum")
+    solusi = clean_text(row.get("Solusi", ""), "-")
+
+    lines = [
+        f"Halo Kak {sales}, mohon bantuannya follow up reject autodebet customer berikut:",
+        "",
+        f"• *Customer:* {cust} ({nokon})",
+        f"• *Cabang/Area:* {cabang_area}",
+        f"• *Bank:* {bank}",
+        f"• *Aging/Tanggal:* {aging_tgl}",
+        f"• *Alasan Reject:* {alasan}",
+        f"• *Solusi:* {solusi}",
+    ]
+    return "\n".join(lines)
+
+def build_wa_rekap_message(df_rekap, nama_so_filter="SEMUA SALES"):
+    if df_rekap.empty:
+        return ""
+    sapaan_nama = nama_so_filter if nama_so_filter != "SEMUA SALES" else "Tim Sales Officer"
+    lines = [
+        f"Halo {sapaan_nama},",
+        "Berikut daftar customer reject yang perlu segera di follow up:",
+        ""
+    ]
+    for idx, (_, row) in enumerate(df_rekap.iterrows(), start=1):
+        cust = clean_text(row.get("Customer", ""), "-")
+        nokon = clean_text(row.get("ID", ""), "-")
+        bank = clean_text(row.get("Bank", ""), "-")
+        cabang_area = extract_cabang_area(row)
+        aging_tgl = extract_aging_tanggal(row)
+        alasan = clean_text(row.get("Alasan Reject", ""), "Alasan belum tercantum")
+        solusi = clean_text(row.get("Solusi", ""), "-")
+        sales_item = clean_text(row.get("Sales", ""), "-")
+
+        baris_so = f"\n   👤 SO: {sales_item}" if nama_so_filter == "SEMUA SALES" else ""
+        lines.append(
+            f"{idx}. *{cust}* ({nokon}){baris_so}\n"
+            f"   📍 Cabang/Area: {cabang_area}\n"
+            f"   🏦 Bank: {bank}\n"
+            f"   ⏳ Aging/Tanggal: {aging_tgl}\n"
+            f"   ❌ Alasan: {alasan}\n"
+            f"   ✅ Solusi: {solusi}"
+        )
+        lines.append("")
+    return "\n".join(lines).strip()
+
 # Fungsi Memuat Data dari Google Sheets Publik via CSV
 @st.cache_data(ttl=10)
 def load_data_sheets():
@@ -162,13 +258,11 @@ def load_data_sheets():
         df = pd.read_csv(url, dtype=str).fillna("")
         df.columns = [c.strip() for c in df.columns]
 
-        # Pastikan kolom utama tersedia dan buang baris benar-benar kosong
         if "NAMA_CUST" in df.columns:
             df = df[df["NAMA_CUST"].str.strip() != ""].copy()
         elif "Customer" in df.columns:
             df = df[df["Customer"].str.strip() != ""].copy()
 
-        # Tambahkan kolom standar agar kompatibel dengan seluruh komponen UI
         df["ID"] = df["NOKON"] if "NOKON" in df.columns else df.get("ID", "-")
         df["Customer"] = df["NAMA_CUST"] if "NAMA_CUST" in df.columns else df.get("Customer", "-")
         df["Bank_Raw"] = df["BANK_AUTODEBET"] if "BANK_AUTODEBET" in df.columns else df.get("Bank", "")
@@ -179,9 +273,9 @@ def load_data_sheets():
         df["Alasan Reject"] = df["REASON REJECT"].str.strip() if "REASON REJECT" in df.columns else df.get("Alasan Reject", "")
         df["Solusi"] = df["Alasan Reject"].apply(get_solusi_reject)
         return df, True
-    except Exception as e:
+    except Exception:
         fallback = pd.DataFrame([
-            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Reject", "Alasan Reject": "Phone number is not correct", "Solusi": "Input ulang menu AOL CSO"}
+            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Reject", "Alasan Reject": "Phone number is not correct", "Solusi": get_solusi_reject("Phone number is not correct"), "CABANG": "MAKASSAR", "AREA NEW": "SULAWESI", "Aging": "12"}
         ])
         return fallback, False
 
@@ -197,9 +291,10 @@ st.sidebar.markdown("**Menu Utama:**")
 menu_pilihan = st.sidebar.radio(
     "Navigasi",
     [
-        "📊 Monitoring Dashboard", 
-        "📋 Sales Tracking Reject", 
-        "📖 Reject Guide", 
+        "📊 Monitoring Dashboard",
+        "📈 Cust Status Tracking",
+        "📋 Sales Tracking Reject",
+        "📖 Reject Guide",
         "⚙️ Pengaturan & Database"
     ],
     label_visibility="collapsed"
@@ -286,6 +381,109 @@ def main():
         kolom_tampil = [c for c in ["NOKON", "NAMA_CUST", "CABANG", "NAME_SO", "BANK_AUTODEBET", "STATUS PENDAFTARAN", "Status", "REASON REJECT"] if c in df_tracking.columns]
         st.dataframe(df_tracking[kolom_tampil] if kolom_tampil else df_tracking, use_container_width=True, hide_index=True)
 
+    elif menu_pilihan == "📈 Cust Status Tracking":
+        st.title("📈 Cust Status Tracking")
+        st.markdown("Pemantauan menyeluruh progress pengajuan seluruh nasabah dan kontribusi performa setiap Sales Officer.")
+
+        c_f1, c_f2, c_f3, c_f4 = st.columns([2, 1.4, 1.2, 1.6])
+        with c_f1:
+            so_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
+            opsi_so = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SO_MAKASSAR + so_di_data))
+            pilih_so_all = st.selectbox("👤 Filter Sales Officer:", opsi_so, key="so_all_select")
+        with c_f2:
+            opsi_status = [
+                "SEMUA STATUS",
+                "Done (D)",
+                "Approved (A)",
+                "In Progress (B)",
+                "Pending (O)",
+                "Reject (R)",
+                "Lainnya / Kosong"
+            ]
+            pilih_status = st.selectbox("📌 Filter Status:", opsi_status, key="status_all_select")
+        with c_f3:
+            opsi_bank = ["SEMUA BANK", "BRI", "MANDIRI", "BCA", "BNI", "PERMATA", "LAINNYA"]
+            pilih_bank = st.selectbox("🏦 Filter Bank:", opsi_bank, key="bank_all_select")
+        with c_f4:
+            cari_cust_all = st.text_input("🔍 Cari Customer / NOKON:", placeholder="Ketik nama atau no. kontrak...", key="search_all_input")
+
+        df_all_view = df_tracking.copy()
+        if pilih_so_all != "SEMUA SALES":
+            df_all_view = df_all_view[df_all_view["Sales"].str.upper() == pilih_so_all.upper()]
+        if pilih_bank != "SEMUA BANK":
+            df_all_view = df_all_view[df_all_view["Bank"].str.upper() == pilih_bank.upper()]
+        if pilih_status == "Done (D)":
+            df_all_view = df_all_view[df_all_view["Status_Code"] == "D"]
+        elif pilih_status == "Approved (A)":
+            df_all_view = df_all_view[df_all_view["Status_Code"] == "A"]
+        elif pilih_status == "In Progress (B)":
+            df_all_view = df_all_view[df_all_view["Status_Code"] == "B"]
+        elif pilih_status == "Pending (O)":
+            df_all_view = df_all_view[df_all_view["Status_Code"] == "O"]
+        elif pilih_status == "Reject (R)":
+            df_all_view = df_all_view[df_all_view["Status_Code"] == "R"]
+        elif pilih_status == "Lainnya / Kosong":
+            df_all_view = df_all_view[~df_all_view["Status_Code"].isin(["D", "A", "B", "O", "R"])]
+        if cari_cust_all:
+            m_n = df_all_view["Customer"].astype(str).str.contains(cari_cust_all, case=False, na=False)
+            m_i = df_all_view["ID"].astype(str).str.contains(cari_cust_all, case=False, na=False)
+            df_all_view = df_all_view[m_n | m_i]
+
+        # Ringkasan Status Sesuai Filter Aktif
+        cnt_d = len(df_all_view[df_all_view["Status_Code"] == "D"])
+        cnt_prog = len(df_all_view[df_all_view["Status_Code"].isin(["A", "B"])])
+        cnt_pend = len(df_all_view[df_all_view["Status_Code"] == "O"])
+        cnt_rej = len(df_all_view[df_all_view["Status_Code"] == "R"])
+
+        k1, k2, k3, k4, k5 = st.columns(5)
+        k1.metric("Total Nasabah", len(df_all_view))
+        k2.metric("Done (D)", cnt_d)
+        k3.metric("In Progress (A+B)", cnt_prog)
+        k4.metric("Pending (O)", cnt_pend)
+        k5.metric("Reject (R)", cnt_rej)
+
+        st.markdown("---")
+        st.subheader("👥 Rekap Progress per Sales Officer")
+        if not df_all_view.empty:
+            rekap_rows = []
+            for so_name, grp in df_all_view.groupby("Sales"):
+                so_label = so_name if so_name.strip() != "" else "(Tanpa Nama SO)"
+                tot_s = len(grp)
+                d_s = len(grp[grp["Status_Code"] == "D"])
+                ab_s = len(grp[grp["Status_Code"].isin(["A", "B"])])
+                o_s = len(grp[grp["Status_Code"] == "O"])
+                r_s = len(grp[grp["Status_Code"] == "R"])
+                pct_d = (d_s / tot_s * 100) if tot_s > 0 else 0.0
+                rekap_rows.append({
+                    "Sales Officer": so_label,
+                    "Total Pengajuan": tot_s,
+                    "Done (D)": d_s,
+                    "In Progress (A+B)": ab_s,
+                    "Pending (O)": o_s,
+                    "Reject (R)": r_s,
+                    "% Done": f"{pct_d:.1f}%"
+                })
+            df_rekap_so = pd.DataFrame(rekap_rows).sort_values(by=["Total Pengajuan", "Done (D)"], ascending=False)
+            st.dataframe(df_rekap_so, use_container_width=True, hide_index=True)
+        else:
+            st.info("Belum ada data rekap SO untuk filter saat ini.")
+
+        st.markdown("---")
+        st.subheader(f"📄 Detail Progress Seluruh Nasabah ({len(df_all_view)} Data)")
+        if not df_all_view.empty:
+            df_detail = df_all_view.copy()
+            df_detail["Cabang / Area"] = df_detail.apply(extract_cabang_area, axis=1)
+            df_detail["Aging / Tanggal"] = df_detail.apply(extract_aging_tanggal, axis=1)
+            kol_detail = [
+                c for c in [
+                    "ID", "Customer", "Sales", "Bank", "Cabang / Area",
+                    "Aging / Tanggal", "Status_Code", "Status", "Alasan Reject"
+                ] if c in df_detail.columns
+            ]
+            st.dataframe(df_detail[kol_detail], use_container_width=True, hide_index=True)
+        else:
+            st.warning("Tidak ada data nasabah yang cocok dengan filter yang dipilih.")
+
     elif menu_pilihan == "📋 Sales Tracking Reject":
         st.title("📋 Sales Tracking Reject")
         st.markdown("Pusat pemantauan dan pengelolaan penolakan (*reject*) penagihan autodebet nasabah.")
@@ -300,7 +498,6 @@ def main():
 
         st.markdown("---")
 
-        # Fokus khusus data Reject (Status_Code == 'R')
         df_view = df_tracking[df_tracking["Status_Code"] == "R"].copy()
         if pilih_sales != "SEMUA SALES":
             df_view = df_view[df_view["Sales"].str.upper() == pilih_sales.upper()]
@@ -317,24 +514,51 @@ def main():
         if len(df_view) == 0:
             st.warning("Tidak ada data reject yang ditemukan untuk filter tersebut.")
         else:
-            for idx, row in df_view.iterrows():
-                alasan = row.get("Alasan Reject", "") or "Alasan belum tercantum di sheet"
+            # Opsi 1: Kirim Rekap per SO (Satu Pesan Bernomor)
+            pesan_rekap = build_wa_rekap_message(df_view, pilih_sales)
+            url_rekap_wa = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap)}"
+            with st.container():
+                st.markdown("""
+                    <div class="rekap-box">
+                        <strong style="color:#ffffff; font-size:16px;">📲 Opsi 1: Kirim Rekap Sekaligus (1 Pesan Bernomor)</strong><br>
+                        <small style="color:#9ca3af;">Menggabungkan seluruh daftar reject yang tampil beserta Cabang/Area, Aging/Tanggal, Bank, Alasan, dan Solusi dalam satu pesan rapi.</small>
+                    </div>
+                """, unsafe_allow_html=True)
+                col_r1, col_r2 = st.columns([1.4, 2.6])
+                with col_r1:
+                    st.markdown(
+                        f'<a href="{url_rekap_wa}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer;">📨 Kirim Rekap WA ({len(df_view)} Data)</button></a>',
+                        unsafe_allow_html=True
+                    )
+                with col_r2:
+                    with st.expander("👁️ Lihat / Salin Teks Pesan Rekap WA"):
+                        st.text_area("Teks Rekap WA", value=pesan_rekap, height=220, label_visibility="collapsed")
+
+            st.markdown("---")
+            st.markdown("#### Opsi 2: Kirim Satuan per Item")
+
+            for _, row in df_view.iterrows():
+                alasan = clean_text(row.get("Alasan Reject", ""), "Alasan belum tercantum di sheet")
+                cabang_area = extract_cabang_area(row)
+                aging_tgl = extract_aging_tanggal(row)
+                wa_item_msg = build_wa_item_message(row)
+                wa_item_url = f"https://wa.me/?text={urllib.parse.quote(wa_item_msg)}"
+
                 with st.container():
                     st.markdown(f"""
                         <div class="reject-box">
-                            <strong>{row.get('Customer', '-')}</strong> ({row.get('Bank', '-')} - No. Kontrak: {row.get('ID', '-')})<br>
-                            <small>Sales Officer: <b>{row.get('Sales', '-')}</b> | Status: <b>{row.get('Status', 'Reject')}</b></small><br>
+                            <strong>{clean_text(row.get('Customer', ''))}</strong> ({clean_text(row.get('Bank', ''))} - No. Kontrak: {clean_text(row.get('ID', ''))})<br>
+                            <small>Sales Officer: <b>{clean_text(row.get('Sales', ''))}</b> | Status: <b>{clean_text(row.get('Status', 'Reject'))}</b></small><br>
+                            <small>📍 Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; ⏳ Aging/Tanggal: <b>{aging_tgl}</b></small><br>
                             <span class="reject-reason">❌ Alasan Reject: {alasan}</span>
                             <div class="solution-box">
                                 <span>💡 Solusi Perbaikan:</span><br>
-                                {row.get('Solusi', '-')}
+                                {clean_text(row.get('Solusi', ''))}
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    wa_msg = f"Halo Kak {row.get('Sales', '')}, mohon bantuannya follow up reject autodebet customer *{row.get('Customer', '')}* (No. Kontrak: {row.get('ID', '-')}, Bank: {row.get('Bank', '-')}). Alasan: {alasan}"
-                    wa_encoded = urllib.parse.quote(wa_msg)
-                    st.markdown(f'<a href="https://wa.me/?text={wa_encoded}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim WA ke SO</button></a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim WA Satuan ke SO</button></a>', unsafe_allow_html=True)
                     st.markdown("---")
 
     elif menu_pilihan == "📖 Reject Guide":
@@ -357,7 +581,7 @@ def main():
 
     elif menu_pilihan == "⚙️ Pengaturan & Database":
         st.subheader("⚙️ Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.0")
+        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.1")
         if is_live:
             st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (`DB_AutoMonitor_Makassar` — {total_data} Data Aktif)")
         else:
