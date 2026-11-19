@@ -116,17 +116,76 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
-# Mapping Solusi Otomatis Berdasarkan Alasan Reject
+# Katalog Lengkap Panduan & Solusi Reject
+REJECT_GUIDE_ITEMS = [
+    {
+        "No": 1,
+        "Alasan Reject": "Phone number is not correct",
+        "Keterangan": "Nomor telepon nasabah tidak sesuai atau berbeda antara data pengajuan/AOL dengan data yang terdaftar di bank / mobile banking (misalnya BRIMO).",
+        "Tindakan Korektif / Solusi SO": "Input ulang melalui menu AOL Autodebet CSO dan pastikan nomor HP sesuai dengan yang terdaftar di Bank/BRIMO. Jika belum sinkron, arahkan nasabah walk-in ke bank untuk pembaruan nomor HP."
+    },
+    {
+        "No": 2,
+        "Alasan Reject": "Phone number not found",
+        "Keterangan": "Nomor telepon nasabah belum terdaftar atau tidak ditemukan pada sistem bank terkait saat proses pendaftaran autodebet.",
+        "Tindakan Korektif / Solusi SO": "Arahkan nasabah melakukan registrasi atau pembaruan data nomor HP aktif di bank terkait terlebih dahulu, lalu ajukan ulang."
+    },
+    {
+        "No": 3,
+        "Alasan Reject": "Scan Kartu ATM Meragukan / No. Kartu ATM Invalid",
+        "Keterangan": "Foto atau scan kartu ATM kurang jelas/buram, atau nasabah sudah melakukan penggantian kartu ATM sehingga nomor kartu lama sudah tidak berlaku.",
+        "Tindakan Korektif / Solusi SO": "Minta foto/scan kartu ATM terbaru yang jelas dan valid (pastikan tidak terpotong/buram), lalu lakukan pengajuan ulang."
+    },
+    {
+        "No": 4,
+        "Alasan Reject": "Tanda Tangan Tidak Menyentuh Materai / Tidak Sesuai",
+        "Keterangan": "Tanda tangan pada form kuasa/SKPR tidak menyentuh materai atau tidak cocok dengan spesimen tanda tangan pada KTP/buku tabungan.",
+        "Tindakan Korektif / Solusi SO": "Lengkapi ulang tanda tangan di atas materai sesuai spesimen KTP/rekening bank nasabah dan pastikan tidak menyimpang dari batas ketentuan."
+    },
+    {
+        "No": 5,
+        "Alasan Reject": "Invalid format account number",
+        "Keterangan": "Format nomor rekening tidak sesuai ketentuan bank, salah digit, atau terdapat spasi/karakter yang tidak valid.",
+        "Tindakan Korektif / Solusi SO": "Periksa kembali nomor rekening nasabah sesuai buku tabungan/rekening asli tanpa spasi atau karakter tambahan, lalu input ulang."
+    },
+    {
+        "No": 6,
+        "Alasan Reject": "Saldo tidak mencukupi",
+        "Keterangan": "Saldo rekening nasabah tidak mencukupi untuk memenuhi syarat minimum atau proses pendebetan/validasi.",
+        "Tindakan Korektif / Solusi SO": "Informasikan nasabah untuk memastikan saldo rekening mencukupi dan aktif sebelum proses penagihan/aktivasi berikutnya."
+    },
+    {
+        "No": 7,
+        "Alasan Reject": "Rekening tidak aktif / dormant",
+        "Keterangan": "Rekening sumber autodebet dalam status dormant (tidak aktif) atau diblokir/terbatas transaksinya.",
+        "Tindakan Korektif / Solusi SO": "Arahkan nasabah untuk mengaktifkan kembali rekening (reaktivasi dormant) di cabang bank terkait."
+    },
+    {
+        "No": 8,
+        "Alasan Reject": "Data customer tidak sesuai",
+        "Keterangan": "Terdapat ketidaksesuaian identitas nasabah (nama, NIK/KTP, atau data pendukung) antara kontrak/pengajuan dan data rekening bank.",
+        "Tindakan Korektif / Solusi SO": "Cocokkan kembali identitas nasabah di KTP, kontrak, dan rekening bank, lalu koordinasikan perbaikan data/dokumen pendukung."
+    }
+]
+
 def get_solusi_reject(reason):
     r = str(reason).lower().strip()
     if "not correct" in r:
         return "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon yang diinput sesuai dengan nomor telepon yang terdaftar di Bank / BRIMO. Arahkan customer walk-in ke Bank untuk updation no Telp."
     elif "not found" in r:
         return "Arahkan Customer untuk melakukan registrasi / pembaruan data nomor HP di bank terkait."
-    elif "tanda tangan" in r or "skpr" in r or "kartu atm" in r:
-        return "Verifikasi ulang nomor kartu ATM aktif & sesuaikan tanda tangan pada form SKPR dengan spesimen KTP/Bank."
+    elif "tanda tangan" in r or "skpr" in r or "materai" in r:
+        return "Lengkapi ulang tanda tangan di atas materai sesuai spesimen KTP/rekening bank, lalu lakukan pengajuan ulang."
+    elif "kartu atm" in r or "3.1.3" in r or "7. " in r:
+        return "Verifikasi ulang nomor kartu ATM aktif & kirim foto/scan kartu ATM yang jelas serta form SKPR sesuai ketentuan."
     elif "account number" in r or "rekening" in r:
         return "Cek dan input ulang nomor rekening sesuai buku tabungan asli tanpa spasi atau karakter tambahan."
+    elif "saldo" in r:
+        return "Informasikan customer untuk memastikan saldo rekening mencukupi sesuai ketentuan."
+    elif "dormant" in r or "tidak aktif" in r:
+        return "Arahkan customer untuk mengaktifkan kembali rekening dormant di bank terkait."
+    elif "tidak sesuai" in r or "data customer" in r:
+        return "Cocokkan kembali data identitas customer antara KTP, kontrak, dan data bank, lalu perbaiki sesuai dokumen sah."
     elif r in ["", "-", "nan", "none"]:
         return "Lakukan pengecekan detail kendala aktivasi autodebet bersama tim Admin / CSO."
     else:
@@ -218,12 +277,12 @@ def build_wa_item_message(row):
     ]
     return "\n".join(lines)
 
-def build_wa_rekap_message(df_rekap, nama_so_filter="SEMUA SALES"):
+def build_wa_rekap_message(df_rekap, nama_so="SO"):
     if df_rekap.empty:
         return ""
-    sapaan_nama = nama_so_filter if nama_so_filter != "SEMUA SALES" else "Tim Sales Officer"
+    sapaan = f"Halo Kak {nama_so}," if nama_so and nama_so != "SEMUA SALES" else "Halo Tim Sales Officer,"
     lines = [
-        f"Halo {sapaan_nama},",
+        sapaan,
         "Berikut daftar customer reject yang perlu segera di follow up:",
         ""
     ]
@@ -237,7 +296,7 @@ def build_wa_rekap_message(df_rekap, nama_so_filter="SEMUA SALES"):
         solusi = clean_text(row.get("Solusi", ""), "-")
         sales_item = clean_text(row.get("Sales", ""), "-")
 
-        baris_so = f"\n   👤 SO: {sales_item}" if nama_so_filter == "SEMUA SALES" else ""
+        baris_so = f"\n   👤 SO: {sales_item}" if nama_so == "SEMUA SALES" else ""
         lines.append(
             f"{idx}. *{cust}* ({nokon}){baris_so}\n"
             f"   📍 Cabang/Area: {cabang_area}\n"
@@ -275,7 +334,7 @@ def load_data_sheets():
         return df, True
     except Exception:
         fallback = pd.DataFrame([
-            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Reject", "Alasan Reject": "Phone number is not correct", "Solusi": get_solusi_reject("Phone number is not correct"), "CABANG": "MAKASSAR", "AREA NEW": "SULAWESI", "Aging": "12"}
+            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Reject", "Alasan Reject": "Phone number is not correct", "Solusi": get_solusi_reject("Phone number is not correct"), "CABANG": "MAKASSAR", "AREA NEW": "Area 5", "Aging": "7"}
         ])
         return fallback, False
 
@@ -429,7 +488,6 @@ def main():
             m_i = df_all_view["ID"].astype(str).str.contains(cari_cust_all, case=False, na=False)
             df_all_view = df_all_view[m_n | m_i]
 
-        # Ringkasan Status Sesuai Filter Aktif
         cnt_d = len(df_all_view[df_all_view["Status_Code"] == "D"])
         cnt_prog = len(df_all_view[df_all_view["Status_Code"].isin(["A", "B"])])
         cnt_pend = len(df_all_view[df_all_view["Status_Code"] == "O"])
@@ -514,41 +572,52 @@ def main():
         if len(df_view) == 0:
             st.warning("Tidak ada data reject yang ditemukan untuk filter tersebut.")
         else:
-            # Opsi 1: Kirim Rekap per SO (Satu Pesan Bernomor)
-            pesan_rekap = build_wa_rekap_message(df_view, pilih_sales)
-            url_rekap_wa = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap)}"
-            with st.container():
-                st.markdown("""
-                    <div class="rekap-box">
-                        <strong style="color:#ffffff; font-size:16px;">📲 Opsi 1: Kirim Rekap Sekaligus (1 Pesan Bernomor)</strong><br>
-                        <small style="color:#9ca3af;">Menggabungkan seluruh daftar reject yang tampil beserta Cabang/Area, Aging/Tanggal, Bank, Alasan, dan Solusi dalam satu pesan rapi.</small>
-                    </div>
-                """, unsafe_allow_html=True)
-                col_r1, col_r2 = st.columns([1.4, 2.6])
-                with col_r1:
-                    st.markdown(
-                        f'<a href="{url_rekap_wa}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer;">📨 Kirim Rekap WA ({len(df_view)} Data)</button></a>',
-                        unsafe_allow_html=True
-                    )
-                with col_r2:
-                    with st.expander("👁️ Lihat / Salin Teks Pesan Rekap WA"):
-                        st.text_area("Teks Rekap WA", value=pesan_rekap, height=220, label_visibility="collapsed")
+            # Hitung jumlah reject per SO pada daftar yang tampil
+            so_counts = df_view["Sales"].value_counts().to_dict()
 
-            st.markdown("---")
-            st.markdown("#### Opsi 2: Kirim Satuan per Item")
+            # Jika filter spesifik 1 SO dan jumlahnya > 1, tampilkan blok rekap sekaligus per SO
+            if pilih_sales != "SEMUA SALES" and len(df_view) > 1:
+                pesan_rekap_so = build_wa_rekap_message(df_view, pilih_sales)
+                url_rekap_so = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap_so)}"
+                with st.container():
+                    st.markdown(f"""
+                        <div class="rekap-box">
+                            <strong style="color:#ffffff; font-size:16px;">📲 Opsi Rekap Sekaligus untuk {pilih_sales} ({len(df_view)} Nasabah)</strong><br>
+                            <small style="color:#9ca3af;">Menggabungkan seluruh {len(df_view)} nasabah reject milik {pilih_sales} ke dalam 1 pesan WA bernomor (lengkap Cabang/Area, Aging/Tanggal, Alasan & Solusi).</small>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    col_r1, col_r2 = st.columns([1.4, 2.6])
+                    with col_r1:
+                        st.markdown(
+                            f'<a href="{url_rekap_so}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:10px 18px; border-radius:6px; font-weight:bold; cursor:pointer;">📨 Kirim Rekap Sekaligus ({len(df_view)} Nasabah)</button></a>',
+                            unsafe_allow_html=True
+                        )
+                    with col_r2:
+                        with st.expander("👁️ Lihat / Salin Teks Rekap WA SO"):
+                            st.text_area("Teks Rekap WA SO", value=pesan_rekap_so, height=220, label_visibility="collapsed")
+                st.markdown("---")
 
             for _, row in df_view.iterrows():
+                sales_nama = clean_text(row.get("Sales", ""), "-")
                 alasan = clean_text(row.get("Alasan Reject", ""), "Alasan belum tercantum di sheet")
                 cabang_area = extract_cabang_area(row)
                 aging_tgl = extract_aging_tanggal(row)
+
+                # Opsi Satuan (1 nasabah saja)
                 wa_item_msg = build_wa_item_message(row)
                 wa_item_url = f"https://wa.me/?text={urllib.parse.quote(wa_item_msg)}"
+
+                # Opsi Rekap per SO jika SO ini memegang > 1 nasabah reject
+                df_so_ini = df_view[df_view["Sales"] == row.get("Sales", "")]
+                jml_so_ini = len(df_so_ini)
+                wa_so_group_msg = build_wa_rekap_message(df_so_ini, sales_nama)
+                wa_so_group_url = f"https://wa.me/?text={urllib.parse.quote(wa_so_group_msg)}"
 
                 with st.container():
                     st.markdown(f"""
                         <div class="reject-box">
                             <strong>{clean_text(row.get('Customer', ''))}</strong> ({clean_text(row.get('Bank', ''))} - No. Kontrak: {clean_text(row.get('ID', ''))})<br>
-                            <small>Sales Officer: <b>{clean_text(row.get('Sales', ''))}</b> | Status: <b>{clean_text(row.get('Status', 'Reject'))}</b></small><br>
+                            <small>Sales Officer: <b>{sales_nama}</b> &nbsp;|&nbsp; Status: <b>{clean_text(row.get('Status', 'Reject'))}</b> &nbsp;|&nbsp; Total Reject SO ini: <b>{jml_so_ini} Nasabah</b></small><br>
                             <small>📍 Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; ⏳ Aging/Tanggal: <b>{aging_tgl}</b></small><br>
                             <span class="reject-reason">❌ Alasan Reject: {alasan}</span>
                             <div class="solution-box">
@@ -557,31 +626,45 @@ def main():
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
-                    
-                    st.markdown(f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim WA Satuan ke SO</button></a>', unsafe_allow_html=True)
+
+                    if jml_so_ini > 1:
+                        b_col1, b_col2 = st.columns([1.2, 2.8])
+                        with b_col1:
+                            st.markdown(
+                                f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim 1 Nasabah Saja</button></a>',
+                                unsafe_allow_html=True
+                            )
+                        with b_col2:
+                            st.markdown(
+                                f'<a href="{wa_so_group_url}" target="_blank"><button style="background-color:#1d4ed8; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; cursor:pointer;">📋 Rekap Semua ({jml_so_ini} Nasabah {sales_nama})</button></a>',
+                                unsafe_allow_html=True
+                            )
+                    else:
+                        st.markdown(
+                            f'<a href="{wa_item_url}" target="_blank"><button style="background-color:#25d366; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">💬 Kirim WA ke SO (1 Nasabah)</button></a>',
+                            unsafe_allow_html=True
+                        )
                     st.markdown("---")
 
     elif menu_pilihan == "📖 Reject Guide":
-        st.header("📖 Panduan Penanganan Reject")
-        st.markdown("Acuan standar operasional universal untuk penanganan penolakan autodebet di ACC Cabang Makassar.")
+        st.header("📖 Panduan Penanganan Reject & Solusi SO")
+        st.markdown("Acuan standar operasional lengkap untuk penanganan penolakan autodebet dan tindakan korektif Sales Officer di ACC Cabang Makassar.")
         
-        search_guide = st.text_input("🔍 Cari Kata Kunci Panduan:", placeholder="Contoh: tanda tangan, rekening, telepon, dokumen...")
+        search_guide = st.text_input("🔍 Cari Kata Kunci Panduan / Solusi:", placeholder="Contoh: tanda tangan, rekening, telepon, brimo, saldo, dormant...")
         
-        data_guide = [
-            {"No": 1, "Alasan Reject": "Phone number is not correct", "Keterangan": "Terjadi perbedaan nomor telepon customer di AOL Autodebet dan BRIMO.", "Tindakan Korektif": "Input ulang melalui menu AOL Autodebet CSO, pastikan nomor telepon sesuai dengan yang terdaftar di Bank/BRIMO."},
-            {"No": 2, "Alasan Reject": "Phone number not found", "Keterangan": "Pada saat pembukaan rekening awal, customer belum mencantumkan nomor telepon ke bank.", "Tindakan Korektif": "Arahkan Customer untuk melakukan pembaruan data nomor HP di bank terkait."},
-            {"No": 3, "Alasan Reject": "Scan Kartu ATM Meragukan / Kartu Invalid", "Keterangan": "Foto/scan kartu ATM kurang jelas atau nasabah sudah melakukan penggantian kartu ATM.", "Tindakan Korektif": "Minta foto kartu ATM terbaru yang jelas dan valid, lalu lakukan pengajuan ulang."},
-            {"No": 4, "Alasan Reject": "Tanda Tangan Tidak Menyentuh Materai / Tidak Sesuai", "Keterangan": "Tanda tangan pada form SKPR tidak menyentuh materai atau tidak cocok dengan spesimen KTP/Bank.", "Tindakan Korektif": "Lengkapi tanda tangan di atas materai sesuai spesimen KTP/rekening bank."},
-            {"No": 5, "Alasan Reject": "Invalid format account number", "Keterangan": "Salah penginputan nomor rekening atau terdapat spasi/karakter yang tidak valid.", "Tindakan Korektif": "Input nomor rekening sesuai buku tabungan asli tanpa spasi."}
-        ]
-        df_g = pd.DataFrame(data_guide)
+        df_g = pd.DataFrame(REJECT_GUIDE_ITEMS)
         if search_guide:
-            df_g = df_g[df_g['Alasan Reject'].str.contains(search_guide, case=False, na=False)]
+            mask_g = (
+                df_g["Alasan Reject"].str.contains(search_guide, case=False, na=False) |
+                df_g["Keterangan"].str.contains(search_guide, case=False, na=False) |
+                df_g["Tindakan Korektif / Solusi SO"].str.contains(search_guide, case=False, na=False)
+            )
+            df_g = df_g[mask_g]
         st.dataframe(df_g, use_container_width=True, hide_index=True)
 
     elif menu_pilihan == "⚙️ Pengaturan & Database":
         st.subheader("⚙️ Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.1")
+        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.2")
         if is_live:
             st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (`DB_AutoMonitor_Makassar` — {total_data} Data Aktif)")
         else:
