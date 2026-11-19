@@ -116,6 +116,36 @@ DAFTAR_SO_MAKASSAR = [
     "MUH ALFIAN TARUNA", "SITI NADIRAH", "PUTRI", "ALFI SAHAR", "NURHIDAYAH", "ASRUL AMRI"
 ]
 
+# Kamus Arti Status Resmi
+KAMUS_STATUS = {
+    "O": "Open",
+    "F": "Bukcet Finance",
+    "D": "Pengajuan ke Bank",
+    "A": "Approved",
+    "R": "Rejected",
+    "C": "Cancelled",
+    "B": "Batal",
+    "E": "Edit",
+    "P": "Pending",
+}
+
+STATUS_TIDAK_AKTIF = {"C", "B"}
+STATUS_AKTIF = {"O", "F", "D", "A", "R", "E", "P"}
+
+def map_status_label(code):
+    c = str(code).upper().strip()
+    if c in KAMUS_STATUS:
+        return KAMUS_STATUS[c]
+    return "Belum Diproses" if c in ["", "NAN", "NONE"] else c
+
+def map_keaktifan_label(code):
+    c = str(code).upper().strip()
+    if c in STATUS_TIDAK_AKTIF:
+        return "Tidak Aktif"
+    if c in STATUS_AKTIF:
+        return "Aktif"
+    return "Aktif" if c not in ["", "NAN", "NONE"] else "Tidak Aktif"
+
 # Katalog Lengkap Panduan & Solusi Reject
 REJECT_GUIDE_ITEMS = [
     {
@@ -207,19 +237,6 @@ def normalize_bank(val):
     elif b in ["", "NAN", "NONE"]:
         return "LAINNYA"
     return b
-
-# Mapping Label Status (D = Done, A & B = In Progress, O = Pending, R = Reject)
-def map_status_label(code):
-    c = str(code).upper().strip()
-    mapping = {
-        "D": "Done (Selesai)",
-        "A": "Approved (In Progress)",
-        "B": "In Progress",
-        "O": "Pending",
-        "R": "Reject",
-        "F": "Proses Lanjutan"
-    }
-    return mapping.get(c, "Belum Diproses" if c in ["", "NAN", "NONE"] else c)
 
 def clean_text(val, default="-"):
     s = str(val).strip()
@@ -329,12 +346,13 @@ def load_data_sheets():
         df["Sales"] = df["NAME_SO"].str.strip() if "NAME_SO" in df.columns else df.get("Sales", "-")
         df["Status_Code"] = df["STATUS PENDAFTARAN"].str.upper().str.strip() if "STATUS PENDAFTARAN" in df.columns else ""
         df["Status"] = df["Status_Code"].apply(map_status_label)
+        df["Keaktifan"] = df["Status_Code"].apply(map_keaktifan_label)
         df["Alasan Reject"] = df["REASON REJECT"].str.strip() if "REASON REJECT" in df.columns else df.get("Alasan Reject", "")
         df["Solusi"] = df["Alasan Reject"].apply(get_solusi_reject)
         return df, True
     except Exception:
         fallback = pd.DataFrame([
-            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Reject", "Alasan Reject": "Phone number is not correct", "Solusi": get_solusi_reject("Phone number is not correct"), "CABANG": "MAKASSAR", "AREA NEW": "Area 5", "Aging": "7"}
+            {"ID": "REG-001", "Customer": "HENRI", "Bank": "BRI", "Sales": "RESKYANTO PUNDA", "Status_Code": "R", "Status": "Rejected", "Keaktifan": "Aktif", "Alasan Reject": "Phone number is not correct", "Solusi": get_solusi_reject("Phone number is not correct"), "CABANG": "MAKASSAR", "AREA NEW": "Area 5", "Aging": "7"}
         ])
         return fallback, False
 
@@ -364,9 +382,11 @@ st.sidebar.info("💡 **ACC Cabang Makassar** — Kolaborasi & monitoring perfor
 
 def main():
     total_data = len(df_tracking)
-    total_done = len(df_tracking[df_tracking["Status_Code"] == "D"]) if not df_tracking.empty else 0
-    total_reject = len(df_tracking[df_tracking["Status_Code"] == "R"]) if not df_tracking.empty else 0
-    success_rate_cabang = (total_done / total_data * 100) if total_data > 0 else 0.0
+    df_aktif = df_tracking[df_tracking["Keaktifan"] == "Aktif"] if not df_tracking.empty else pd.DataFrame()
+    total_aktif = len(df_aktif)
+    total_approved = len(df_tracking[df_tracking["Status_Code"] == "A"]) if not df_tracking.empty else 0
+    total_rejected = len(df_tracking[df_tracking["Status_Code"] == "R"]) if not df_tracking.empty else 0
+    success_rate_cabang = (total_approved / total_data * 100) if total_data > 0 else 0.0
 
     if menu_pilihan == "📊 Monitoring Dashboard":
         st.title("🚗 AUTOTEAM — ACC Cabang Makassar")
@@ -379,23 +399,23 @@ def main():
                 <div class="metric-card">
                     <span style="color: #9ca3af; font-size: 14px;">Total Data Tracking</span>
                     <h2 style="color: #3b82f6; margin: 5px 0;">{total_data}</h2>
-                    <small style="color: #10b981;">● Live Sync Google Sheets</small>
+                    <small style="color: #10b981;">● Aktif: {total_aktif} | Non-Aktif (C/B): {total_data - total_aktif}</small>
                 </div>
             """, unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Total Reject Aktif</span>
-                    <h2 style="color: #ef4444; margin: 5px 0;">{total_reject}</h2>
-                    <small style="color: #f59e0b;">● Perlu Tindak Lanjut</small>
+                    <span style="color: #9ca3af; font-size: 14px;">Total Rejected (R)</span>
+                    <h2 style="color: #ef4444; margin: 5px 0;">{total_rejected}</h2>
+                    <small style="color: #f59e0b;">● Status Aktif Perlu Tindak Lanjut</small>
                 </div>
             """, unsafe_allow_html=True)
         with col3:
             st.markdown(f"""
                 <div class="metric-card">
-                    <span style="color: #9ca3af; font-size: 14px;">Success Rate Cabang</span>
+                    <span style="color: #9ca3af; font-size: 14px;">Success Rate (Approved / A)</span>
                     <h2 style="color: #10b981; margin: 5px 0;">{success_rate_cabang:.1f}%</h2>
-                    <small style="color: #10b981;">● {total_done} Done dari {total_data} Data</small>
+                    <small style="color: #10b981;">● {total_approved} Approved dari {total_data} Data</small>
                 </div>
             """, unsafe_allow_html=True)
         with col4:
@@ -421,15 +441,15 @@ def main():
         for idx, (bank_name, title_color) in enumerate(bank_configs):
             sub_b = df_tracking[df_tracking["Bank"] == bank_name]
             vol_b = len(sub_b)
-            done_b = len(sub_b[sub_b["Status_Code"] == "D"])
-            rate_b = (done_b / vol_b * 100) if vol_b > 0 else 0.0
+            app_b = len(sub_b[sub_b["Status_Code"] == "A"])
+            rate_b = (app_b / vol_b * 100) if vol_b > 0 else 0.0
             badge_label = "Top Rate" if rate_b >= 70 else ("Dominan" if vol_b >= 100 else ("Proses" if vol_b > 0 else "N/A"))
             with bank_cols[idx]:
                 st.markdown(
                     f'<div class="bank-card">'
                     f'<b style="color: {title_color}; font-size: 16px;">{bank_name}</b>'
                     f'<h3 style="margin: 5px 0; color: #f3f4f6;">{rate_b:.1f}%</h3>'
-                    f'<span style="color: #9ca3af; font-size: 12px;">Total: <b>{vol_b}</b> Nasabah ({done_b} Done)</span><br>'
+                    f'<span style="color: #9ca3af; font-size: 12px;">Total: <b>{vol_b}</b> Nasabah ({app_b} Approved)</span><br>'
                     f'<small style="color: #10b981;">{badge_label}</small>'
                     f'</div>',
                     unsafe_allow_html=True
@@ -437,14 +457,14 @@ def main():
 
         st.markdown("---")
         st.subheader("📋 Master Data Nasabah & Status Tracking (Live from Google Sheets)")
-        kolom_tampil = [c for c in ["NOKON", "NAMA_CUST", "CABANG", "NAME_SO", "BANK_AUTODEBET", "STATUS PENDAFTARAN", "Status", "REASON REJECT"] if c in df_tracking.columns]
+        kolom_tampil = [c for c in ["NOKON", "NAMA_CUST", "CABANG", "NAME_SO", "BANK_AUTODEBET", "STATUS PENDAFTARAN", "Status", "Keaktifan", "REASON REJECT"] if c in df_tracking.columns]
         st.dataframe(df_tracking[kolom_tampil] if kolom_tampil else df_tracking, use_container_width=True, hide_index=True)
 
     elif menu_pilihan == "📈 Cust Status Tracking":
         st.title("📈 Cust Status Tracking")
         st.markdown("Pemantauan menyeluruh progress pengajuan seluruh nasabah dan kontribusi performa setiap Sales Officer.")
 
-        c_f1, c_f2, c_f3, c_f4 = st.columns([2, 1.4, 1.2, 1.6])
+        c_f1, c_f2, c_f3, c_f4, c_f5 = st.columns([1.8, 1.3, 1.1, 1.1, 1.5])
         with c_f1:
             so_di_data = sorted([s for s in df_tracking["Sales"].unique() if s not in ["", "-"]])
             opsi_so = ["SEMUA SALES"] + list(dict.fromkeys(DAFTAR_SO_MAKASSAR + so_di_data))
@@ -452,53 +472,63 @@ def main():
         with c_f2:
             opsi_status = [
                 "SEMUA STATUS",
-                "Done (D)",
+                "Open (O)",
+                "Bukcet Finance (F)",
+                "Pengajuan ke Bank (D)",
                 "Approved (A)",
-                "In Progress (B)",
-                "Pending (O)",
-                "Reject (R)",
-                "Lainnya / Kosong"
+                "Rejected (R)",
+                "Cancelled (C)",
+                "Batal (B)",
+                "Edit (E)",
+                "Pending (P)",
             ]
             pilih_status = st.selectbox("📌 Filter Status:", opsi_status, key="status_all_select")
         with c_f3:
+            pilih_keaktifan = st.selectbox("⚡ Keaktifan:", ["SEMUA", "Aktif", "Tidak Aktif"], key="aktif_all_select")
+        with c_f4:
             opsi_bank = ["SEMUA BANK", "BRI", "MANDIRI", "BCA", "BNI", "PERMATA", "LAINNYA"]
             pilih_bank = st.selectbox("🏦 Filter Bank:", opsi_bank, key="bank_all_select")
-        with c_f4:
+        with c_f5:
             cari_cust_all = st.text_input("🔍 Cari Customer / NOKON:", placeholder="Ketik nama atau no. kontrak...", key="search_all_input")
 
         df_all_view = df_tracking.copy()
         if pilih_so_all != "SEMUA SALES":
             df_all_view = df_all_view[df_all_view["Sales"].str.upper() == pilih_so_all.upper()]
+        if pilih_keaktifan != "SEMUA":
+            df_all_view = df_all_view[df_all_view["Keaktifan"] == pilih_keaktifan]
         if pilih_bank != "SEMUA BANK":
             df_all_view = df_all_view[df_all_view["Bank"].str.upper() == pilih_bank.upper()]
-        if pilih_status == "Done (D)":
-            df_all_view = df_all_view[df_all_view["Status_Code"] == "D"]
-        elif pilih_status == "Approved (A)":
-            df_all_view = df_all_view[df_all_view["Status_Code"] == "A"]
-        elif pilih_status == "In Progress (B)":
-            df_all_view = df_all_view[df_all_view["Status_Code"] == "B"]
-        elif pilih_status == "Pending (O)":
-            df_all_view = df_all_view[df_all_view["Status_Code"] == "O"]
-        elif pilih_status == "Reject (R)":
-            df_all_view = df_all_view[df_all_view["Status_Code"] == "R"]
-        elif pilih_status == "Lainnya / Kosong":
-            df_all_view = df_all_view[~df_all_view["Status_Code"].isin(["D", "A", "B", "O", "R"])]
+
+        status_code_map = {
+            "Open (O)": "O",
+            "Bukcet Finance (F)": "F",
+            "Pengajuan ke Bank (D)": "D",
+            "Approved (A)": "A",
+            "Rejected (R)": "R",
+            "Cancelled (C)": "C",
+            "Batal (B)": "B",
+            "Edit (E)": "E",
+            "Pending (P)": "P",
+        }
+        if pilih_status in status_code_map:
+            df_all_view = df_all_view[df_all_view["Status_Code"] == status_code_map[pilih_status]]
+
         if cari_cust_all:
             m_n = df_all_view["Customer"].astype(str).str.contains(cari_cust_all, case=False, na=False)
             m_i = df_all_view["ID"].astype(str).str.contains(cari_cust_all, case=False, na=False)
             df_all_view = df_all_view[m_n | m_i]
 
-        cnt_d = len(df_all_view[df_all_view["Status_Code"] == "D"])
-        cnt_prog = len(df_all_view[df_all_view["Status_Code"].isin(["A", "B"])])
-        cnt_pend = len(df_all_view[df_all_view["Status_Code"] == "O"])
+        cnt_app = len(df_all_view[df_all_view["Status_Code"] == "A"])
+        cnt_aktif = len(df_all_view[df_all_view["Keaktifan"] == "Aktif"])
+        cnt_nonaktif = len(df_all_view[df_all_view["Keaktifan"] == "Tidak Aktif"])
         cnt_rej = len(df_all_view[df_all_view["Status_Code"] == "R"])
 
         k1, k2, k3, k4, k5 = st.columns(5)
-        k1.metric("Total Nasabah", len(df_all_view))
-        k2.metric("Done (D)", cnt_d)
-        k3.metric("In Progress (A+B)", cnt_prog)
-        k4.metric("Pending (O)", cnt_pend)
-        k5.metric("Reject (R)", cnt_rej)
+        k1.metric("Total Data", len(df_all_view))
+        k2.metric("Approved (A)", cnt_app)
+        k3.metric("Status Aktif", cnt_aktif)
+        k4.metric("Tidak Aktif (C/B)", cnt_nonaktif)
+        k5.metric("Rejected (R)", cnt_rej)
 
         st.markdown("---")
         st.subheader("👥 Rekap Progress per Sales Officer")
@@ -507,21 +537,21 @@ def main():
             for so_name, grp in df_all_view.groupby("Sales"):
                 so_label = so_name if so_name.strip() != "" else "(Tanpa Nama SO)"
                 tot_s = len(grp)
-                d_s = len(grp[grp["Status_Code"] == "D"])
-                ab_s = len(grp[grp["Status_Code"].isin(["A", "B"])])
-                o_s = len(grp[grp["Status_Code"] == "O"])
-                r_s = len(grp[grp["Status_Code"] == "R"])
-                pct_d = (d_s / tot_s * 100) if tot_s > 0 else 0.0
+                app_s = len(grp[grp["Status_Code"] == "A"])
+                akt_s = len(grp[grp["Keaktifan"] == "Aktif"])
+                nonakt_s = len(grp[grp["Keaktifan"] == "Tidak Aktif"])
+                rej_s = len(grp[grp["Status_Code"] == "R"])
+                pct_app = (app_s / tot_s * 100) if tot_s > 0 else 0.0
                 rekap_rows.append({
                     "Sales Officer": so_label,
-                    "Total Pengajuan": tot_s,
-                    "Done (D)": d_s,
-                    "In Progress (A+B)": ab_s,
-                    "Pending (O)": o_s,
-                    "Reject (R)": r_s,
-                    "% Done": f"{pct_d:.1f}%"
+                    "Total Data": tot_s,
+                    "Approved (A)": app_s,
+                    "Aktif": akt_s,
+                    "Tidak Aktif (C/B)": nonakt_s,
+                    "Rejected (R)": rej_s,
+                    "% Approved": f"{pct_app:.1f}%"
                 })
-            df_rekap_so = pd.DataFrame(rekap_rows).sort_values(by=["Total Pengajuan", "Done (D)"], ascending=False)
+            df_rekap_so = pd.DataFrame(rekap_rows).sort_values(by=["Total Data", "Approved (A)"], ascending=False)
             st.dataframe(df_rekap_so, use_container_width=True, hide_index=True)
         else:
             st.info("Belum ada data rekap SO untuk filter saat ini.")
@@ -535,7 +565,7 @@ def main():
             kol_detail = [
                 c for c in [
                     "ID", "Customer", "Sales", "Bank", "Cabang / Area",
-                    "Aging / Tanggal", "Status_Code", "Status", "Alasan Reject"
+                    "Aging / Tanggal", "Status_Code", "Status", "Keaktifan", "Alasan Reject"
                 ] if c in df_detail.columns
             ]
             st.dataframe(df_detail[kol_detail], use_container_width=True, hide_index=True)
@@ -544,7 +574,7 @@ def main():
 
     elif menu_pilihan == "📋 Sales Tracking Reject":
         st.title("📋 Sales Tracking Reject")
-        st.markdown("Pusat pemantauan dan pengelolaan penolakan (*reject*) penagihan autodebet nasabah.")
+        st.markdown("Pusat pemantauan dan pengelolaan penolakan (*reject / R*) penagihan autodebet nasabah.")
         
         col_f1, col_f2 = st.columns([2, 1])
         with col_f1:
@@ -567,15 +597,11 @@ def main():
         st.info("💡 **Akses Database Pusat:** Untuk mengelola, menambah, atau menghapus data secara langsung, silakan buka Google Sheets utama.")
         st.markdown('<a href="https://docs.google.com/spreadsheets/d/1eGeosnjBbMnAK0I0pbIcGtTBxlOYTN4eUgtz9X5CM2M/edit" target="_blank"><button style="background-color:#10b981; color:white; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">📂 Buka Google Sheets Database Utama</button></a>', unsafe_allow_html=True)
 
-        st.markdown(f"### Daftar Tanggungan Reject ({len(df_view)} Data)")
+        st.markdown(f"### Daftar Tanggungan Rejected ({len(df_view)} Data)")
         
         if len(df_view) == 0:
-            st.warning("Tidak ada data reject yang ditemukan untuk filter tersebut.")
+            st.warning("Tidak ada data rejected yang ditemukan untuk filter tersebut.")
         else:
-            # Hitung jumlah reject per SO pada daftar yang tampil
-            so_counts = df_view["Sales"].value_counts().to_dict()
-
-            # Jika filter spesifik 1 SO dan jumlahnya > 1, tampilkan blok rekap sekaligus per SO
             if pilih_sales != "SEMUA SALES" and len(df_view) > 1:
                 pesan_rekap_so = build_wa_rekap_message(df_view, pilih_sales)
                 url_rekap_so = f"https://wa.me/?text={urllib.parse.quote(pesan_rekap_so)}"
@@ -603,11 +629,9 @@ def main():
                 cabang_area = extract_cabang_area(row)
                 aging_tgl = extract_aging_tanggal(row)
 
-                # Opsi Satuan (1 nasabah saja)
                 wa_item_msg = build_wa_item_message(row)
                 wa_item_url = f"https://wa.me/?text={urllib.parse.quote(wa_item_msg)}"
 
-                # Opsi Rekap per SO jika SO ini memegang > 1 nasabah reject
                 df_so_ini = df_view[df_view["Sales"] == row.get("Sales", "")]
                 jml_so_ini = len(df_so_ini)
                 wa_so_group_msg = build_wa_rekap_message(df_so_ini, sales_nama)
@@ -617,7 +641,7 @@ def main():
                     st.markdown(f"""
                         <div class="reject-box">
                             <strong>{clean_text(row.get('Customer', ''))}</strong> ({clean_text(row.get('Bank', ''))} - No. Kontrak: {clean_text(row.get('ID', ''))})<br>
-                            <small>Sales Officer: <b>{sales_nama}</b> &nbsp;|&nbsp; Status: <b>{clean_text(row.get('Status', 'Reject'))}</b> &nbsp;|&nbsp; Total Reject SO ini: <b>{jml_so_ini} Nasabah</b></small><br>
+                            <small>Sales Officer: <b>{sales_nama}</b> &nbsp;|&nbsp; Status: <b>{clean_text(row.get('Status', 'Rejected'))} ({clean_text(row.get('Status_Code', 'R'))})</b> &nbsp;|&nbsp; Total Reject SO ini: <b>{jml_so_ini} Nasabah</b></small><br>
                             <small>📍 Cabang/Area: <b>{cabang_area}</b> &nbsp;|&nbsp; ⏳ Aging/Tanggal: <b>{aging_tgl}</b></small><br>
                             <span class="reject-reason">❌ Alasan Reject: {alasan}</span>
                             <div class="solution-box">
@@ -664,9 +688,9 @@ def main():
 
     elif menu_pilihan == "⚙️ Pengaturan & Database":
         st.subheader("⚙️ Pengaturan Sistem & Database Google Sheets")
-        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.2")
+        st.write("Versi Web: **AUTOTEAM** (Autodebet Team Achievement & Monitoring) v7.3")
         if is_live:
-            st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (`DB_AutoMonitor_Makassar` — {total_data} Data Aktif)")
+            st.success(f"Status: Terhubung Sempurna ke Google Sheets Database Utama (`DB_AutoMonitor_Makassar` — {total_data} Data)")
         else:
             st.warning("Status: Menggunakan mode cadangan sementara. Pastikan akses berbagi Google Sheets diset 'Siapa saja yang memiliki link dapat melihat'.")
         
